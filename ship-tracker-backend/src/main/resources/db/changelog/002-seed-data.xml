@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="002-seed-users" author="shiptracker">
+        <insert tableName="users">
+            <column name="username" value="admin"/>
+            <!-- BCrypt hash of: admin123 -->
+            <column name="password" value="$2a$12$Rl9YNW3IYTO6bUCMDoYxaOR5FkMSEK/7VHWYewzr5WT3cEV1.yNpG"/>
+            <column name="role" value="ROLE_USER"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="002-seed-ships" author="shiptracker">
+        <insert tableName="ships">
+            <column name="name" value="Atlantic Pioneer"/>
+            <column name="launch_date" value="2005-03-15"/>
+            <column name="ship_type" value="Cargo"/>
+            <column name="tonnage" value="45000.00"/>
+        </insert>
+        <insert tableName="ships">
+            <column name="name" value="Nordic Star"/>
+            <column name="launch_date" value="2010-07-22"/>
+            <column name="ship_type" value="Tanker"/>
+            <column name="tonnage" value="78500.00"/>
+        </insert>
+        <insert tableName="ships">
+            <column name="name" value="Pacific Crown"/>
+            <column name="launch_date" value="2015-11-08"/>
+            <column name="ship_type" value="Container"/>
+            <column name="tonnage" value="120000.00"/>
+        </insert>
+        <insert tableName="ships">
+            <column name="name" value="Baltic Voyager"/>
+            <column name="launch_date" value="2018-04-30"/>
+            <column name="ship_type" value="Bulk Carrier"/>
+            <column name="tonnage" value="62000.00"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="002-seed-location-reports" author="shiptracker">
+        <!-- Atlantic Pioneer (id=1) -->
+        <insert tableName="location_reports">
+            <column name="ship_id" value="1"/>
+            <column name="report_date" value="2024-01-10"/>
+            <column name="country" value="Poland"/>
+            <column name="port" value="Gdańsk"/>
+        </insert>
+        <insert tableName="location_reports">
+            <column name="ship_id" value="1"/>
+            <column name="report_date" value="2024-02-14"/>
+            <column name="country" value="Germany"/>
+            <column name="port" value="Hamburg"/>
+        </insert>
+        <insert tableName="location_reports">
+            <column name="ship_id" value="1"/>
+            <column name="report_date" value="2024-03-20"/>
+            <column name="country" value="Netherlands"/>
+            <column name="port" value="Rotterdam"/>
+        </insert>
+
+        <!-- Nordic Star (id=2) -->
+        <insert tableName="location_reports">
+            <column name="ship_id" value="2"/>
+            <column name="report_date" value="2024-01-05"/>
+            <column name="country" value="Norway"/>
+            <column name="port" value="Oslo"/>
+        </insert>
+        <insert tableName="location_reports">
+            <column name="ship_id" value="2"/>
+            <column name="report_date" value="2024-02-18"/>
+            <column name="country" value="Denmark"/>
+            <column name="port" value="Copenhagen"/>
+        </insert>
+        <insert tableName="location_reports">
+            <column name="ship_id" value="2"/>
+            <column name="report_date" value="2024-03-30"/>
+            <column name="country" value="Sweden"/>
+            <column name="port" value="Gothenburg"/>
+        </insert>
+        <insert tableName="location_reports">
+            <column name="ship_id" value="2"/>
+            <column name="report_date" value="2024-04-12"/>
+            <column name="country" value="Finland"/>
+            <column name="port" value="Helsinki"/>
+        </insert>
+
+        <!-- Pacific Crown (id=3) -->
+        <insert tableName="location_reports">
+            <column name="ship_id" value="3"/>
+            <column name="report_date" value="2024-01-20"/>
+            <column name="country" value="Spain"/>
+            <column name="port" value="Barcelona"/>
+        </insert>
+        <insert tableName="location_reports">
+            <column name="ship_id" value="3"/>
+            <column name="report_date" value="2024-02-25"/>
+            <column name="country" value="France"/>
+            <column name="port" value="Marseille"/>
+        </insert>
+        <insert tableName="location_reports">
+            <column name="ship_id" value="3"/>
+            <column name="report_date" value="2024-03-15"/>
+            <column name="country" value="Italy"/>
+            <column name="port" value="Genoa"/>
+        </insert>
+        <insert tableName="location_reports">
+            <column name="ship_id" value="3"/>
+            <column name="report_date" value="2024-04-05"/>
+            <column name="country" value="Greece"/>
+            <column name="port" value="Piraeus"/>
+        </insert>
+        <insert tableName="location_reports">
+            <column name="ship_id" value="3"/>
+            <column name="report_date" value="2024-05-10"/>
+            <column name="country" value="Turkey"/>
+            <column name="port" value="Istanbul"/>
+        </insert>
+
+        <!-- Baltic Voyager (id=4) -->
+        <insert tableName="location_reports">
+            <column name="ship_id" value="4"/>
+            <column name="report_date" value="2024-02-08"/>
+            <column name="country" value="Estonia"/>
+            <column name="port" value="Tallinn"/>
+        </insert>
+        <insert tableName="location_reports">
+            <column name="ship_id" value="4"/>
+            <column name="report_date" value="2024-03-12"/>
+            <column name="country" value="Latvia"/>
+            <column name="port" value="Riga"/>
+        </insert>
+        <insert tableName="location_reports">
+            <column name="ship_id" value="4"/>
+            <column name="report_date" value="2024-04-18"/>
+            <column name="country" value="Lithuania"/>
+            <column name="port" value="Klaipėda"/>
+        </insert>
+    </changeSet>
+
+</databaseChangeLog>
