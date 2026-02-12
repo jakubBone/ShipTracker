@@ -20,14 +20,12 @@ public class ShipService {
         this.shipRepository = shipRepository;
     }
 
-    @Transactional(readOnly = true)
     public List<ShipResponse> findAll() {
         return shipRepository.findAll().stream()
                 .map(this::toResponse)
                 .toList();
     }
 
-    @Transactional(readOnly = true)
     public ShipResponse findById(Long id) {
         return shipRepository.findById(id)
                 .map(this::toResponse)

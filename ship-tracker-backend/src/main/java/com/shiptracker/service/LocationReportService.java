@@ -8,10 +8,12 @@ import com.shiptracker.exception.ResourceNotFoundException;
 import com.shiptracker.repository.LocationReportRepository;
 import com.shiptracker.repository.ShipRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class LocationReportService {
 
     private final LocationReportRepository locationReportRepository;
