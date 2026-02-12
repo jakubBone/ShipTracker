@@ -6,10 +6,12 @@ import com.shiptracker.entity.Ship;
 import com.shiptracker.exception.ResourceNotFoundException;
 import com.shiptracker.repository.ShipRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@Transactional
 public class ShipService {
 
     private final ShipRepository shipRepository;
@@ -18,12 +20,14 @@ public class ShipService {
         this.shipRepository = shipRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<ShipResponse> findAll() {
         return shipRepository.findAll().stream()
                 .map(this::toResponse)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public ShipResponse findById(Long id) {
         return shipRepository.findById(id)
                 .map(this::toResponse)
