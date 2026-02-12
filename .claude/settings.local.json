@@ -7,7 +7,9 @@
       "Bash(powershell -Command:*)",
       "Bash(del \"C:\\\\Users\\\\Jakub Bone\\\\Desktop\\\\ship-tracker\\\\ship-tracker-backend\\\\src\\\\test\\\\java\\\\com\\\\shiptracker\\\\HashGeneratorTest.java\")",
       "Bash(docker exec:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(xargs:*)",
+      "Bash(dir:*)"
     ]
   }
 }
