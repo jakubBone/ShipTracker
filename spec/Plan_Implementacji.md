@@ -252,6 +252,16 @@ curl -X POST http://localhost:8080/api/auth/login \
   -c cookies.txt
 # Oczekiwane: 200 OK, ciasteczko JSESSIONID w cookies.txt
 
+# Logowanie — złe hasło
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"wrong"}'
+# Oczekiwane: 401 Unauthorized
+
+# Brak sesji → 401
+curl http://localhost:8080/api/ships
+# Oczekiwane: 401 Unauthorized
+
 # Lista statków (wymaga sesji)
 curl http://localhost:8080/api/ships -b cookies.txt
 # Oczekiwane: JSON array z 4 statkami z seed data
@@ -262,15 +272,21 @@ curl -X POST http://localhost:8080/api/ships \
   -d '{"name":"Black Pearl","launchDate":"2010-05-15","shipType":"Cargo","tonnage":50000}'
 # Oczekiwane: 201 Created, JSON z id
 
-# Walidacja — brak wymaganych pól
+# Walidacja — puste pola
 curl -X POST http://localhost:8080/api/ships \
   -H "Content-Type: application/json" -b cookies.txt \
   -d '{"name":""}'
-# Oczekiwane: 400 Bad Request, JSON z błędami pól
+# Oczekiwane: 400 Bad Request, JSON z mapą błędów pól
 
-# Brak sesji → 401
-curl http://localhost:8080/api/ships
-# Oczekiwane: 401 Unauthorized
+# Walidacja — tonaż ujemny
+curl -X POST http://localhost:8080/api/ships \
+  -H "Content-Type: application/json" -b cookies.txt \
+  -d '{"name":"X","launchDate":"2010-01-01","shipType":"Cargo","tonnage":-1}'
+# Oczekiwane: 400 Bad Request
+
+# Nieistniejący statek
+curl http://localhost:8080/api/ships/99999 -b cookies.txt
+# Oczekiwane: 404 Not Found
 
 # Dodanie wpisu lokalizacji
 curl -X POST http://localhost:8080/api/ships/1/reports \
@@ -278,20 +294,29 @@ curl -X POST http://localhost:8080/api/ships/1/reports \
   -d '{"reportDate":"2024-03-10","country":"Poland","port":"Gdańsk"}'
 # Oczekiwane: 201 Created
 
+# Dodanie wpisu do nieistniejącego statku
+curl -X POST http://localhost:8080/api/ships/99999/reports \
+  -H "Content-Type: application/json" -b cookies.txt \
+  -d '{"reportDate":"2024-03-10","country":"Poland","port":"Gdańsk"}'
+# Oczekiwane: 404 Not Found
+
 # Generowanie nazwy
 curl http://localhost:8080/api/ships/generate-name -b cookies.txt
 # Oczekiwane: 200 OK, {"name":"<losowa nazwa>"}
+# Gdy API niedostępne: 503 Service Unavailable
 ```
 
 ### Definicja "done":
 - Liquibase tworzy tabele i wgrywa seed data przy starcie
 - Logowanie zwraca 200 + ciasteczko sesji
+- Błędne dane logowania → 401
 - GET /api/ships → lista 4 statków (z seed)
-- POST /api/ships → tworzenie z walidacją (400 przy pustych polach)
+- POST /api/ships → tworzenie z walidacją (400 przy błędnych polach)
+- GET /api/ships/{id} → 404 dla nieistniejącego id
 - GET /api/ships/{id}/reports → lista posortowana chronologicznie
-- POST /api/ships/{id}/reports → tworzenie wpisu
+- POST /api/ships/{id}/reports → 404 gdy statek nie istnieje
 - 401 dla requestów bez sesji
-- GET /api/ships/generate-name → losowa nazwa
+- GET /api/ships/generate-name → losowa nazwa lub 503 gdy API pada
 
 ---
 

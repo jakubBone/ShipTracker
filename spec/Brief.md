@@ -85,13 +85,25 @@ Operator floty / dyspozytor w firmie zajmującej się transportem morskim:
 
 ---
 
-# 6. Edge Cases
+# 6. Reguły biznesowe i edge cases
 
-- Wpisy lokalizacji są immutable — brak endpointu PUT/PATCH dla location_reports
-- Statek może mieć wiele wpisów lokalizacji (relacja @OneToMany)
-- Walidacja po stronie backendu (Bean Validation) i frontendu (Reactive Forms)
-- Generowanie nazwy może zwrócić błąd → UI pokazuje komunikat, formularz pozostaje aktywny
-- Seed data dostępne od pierwszego uruchomienia (Liquibase changeset)
+## Reguły biznesowe
+- Wpisy lokalizacji są **immutable** — brak endpointów PUT/PATCH dla `location_reports`; po zapisaniu nie można ich edytować
+- Statek może mieć wiele wpisów lokalizacji (relacja `@OneToMany`); wpisy wyświetlane są chronologicznie
+- Walidacja wymagana po stronie backendu (Bean Validation) oraz frontendu (Reactive Forms)
+
+## Edge cases — obsługa błędów
+
+| Scenariusz | Oczekiwane zachowanie |
+|---|---|
+| Żądanie do `/api/**` bez aktywnej sesji | `401 Unauthorized` |
+| Logowanie z błędnymi danymi | `401 Unauthorized` |
+| Tworzenie/edycja statku z pustymi lub niepoprawnymi polami | `400 Bad Request` + mapa błędów pól |
+| Tonaż równy zero lub ujemny | `400 Bad Request` |
+| Żądanie szczegółów nieistniejącego statku (`GET /api/ships/{id}`) | `404 Not Found` |
+| Edycja nieistniejącego statku (`PUT /api/ships/{id}`) | `404 Not Found` |
+| Dodanie raportu do nieistniejącego statku | `404 Not Found` |
+| Niedostępność zewnętrznego API randommer.io | `503 Service Unavailable` + komunikat; formularz pozostaje aktywny |
 
 ---
 
@@ -111,14 +123,12 @@ Operator floty / dyspozytor w firmie zajmującej się transportem morskim:
 ```
 src/main/java/com/shiptracker/
 ├── config/
-│   ├── SecurityConfig.java
-│   └── CorsConfig.java
+│   └── SecurityConfig.java          # CORS skonfigurowany wewnątrz SecurityConfig
 ├── controller/
 │   ├── AuthController.java
 │   ├── ShipController.java
 │   └── LocationReportController.java
 ├── service/
-│   ├── AuthService.java
 │   ├── ShipService.java
 │   ├── LocationReportService.java
 │   └── NameGeneratorService.java
@@ -138,7 +148,8 @@ src/main/java/com/shiptracker/
 │   └── LocationReportResponse.java  # record
 └── exception/
     ├── GlobalExceptionHandler.java
-    └── ResourceNotFoundException.java
+    ├── ResourceNotFoundException.java
+    └── ExternalApiException.java
 
 src/main/resources/
 ├── application.properties
