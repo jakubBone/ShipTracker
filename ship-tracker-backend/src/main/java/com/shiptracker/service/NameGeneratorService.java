@@ -14,11 +14,12 @@ public class NameGeneratorService {
     private final String apiUrl;
 
     public NameGeneratorService(
+            RestClient restClient,
             @Value("${randommer.api.key}") String apiKey,
             @Value("${randommer.api.url}") String apiUrl) {
+        this.restClient = restClient;
         this.apiKey = apiKey;
         this.apiUrl = apiUrl;
-        this.restClient = RestClient.create();
     }
 
     public String generateName() {
