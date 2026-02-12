@@ -9,7 +9,7 @@
         <insert tableName="users">
             <column name="username" value="admin"/>
             <!-- BCrypt hash of: admin123 -->
-            <column name="password" value="$2a$12$Rl9YNW3IYTO6bUCMDoYxaOR5FkMSEK/7VHWYewzr5WT3cEV1.yNpG"/>
+            <column name="password" value="$2a$10$2dtoAA3JLKNBGCfR8EmJP.GsnhioWmZfftnOrlbqWdC9Hpv4no/JO"/>
             <column name="role" value="ROLE_USER"/>
         </insert>
     </changeSet>
