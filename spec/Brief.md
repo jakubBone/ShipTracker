@@ -61,13 +61,30 @@ Operator floty / dyspozytor w firmie zajmującej się transportem morskim:
 | Frontend | Angular (najnowsza stabilna) |
 | Repo | Publiczne repozytorium GitHub |
 
-### Java 21 — wymagane podejście
+### Java 21 — zastosowane podejście
 
-- DTO jako **Java Records** (immutable, kompaktowe)
-- **Pattern matching** dla instanceof tam gdzie zasadne
-- **Switch expressions** zamiast switch statement
-- **Text blocks** do wieloliniowych stringów (SQL, JSON w testach)
-- Brak Lombok na DTO — records zastępują gettery/settery/constructory
+- DTO jako **Java Records** (immutable, kompaktowe) — zastępują klasy z getterami/setterami/konstruktorami; brak Lomboka
+- **`Optional` + `.orElseThrow()`** — idiomatyczna obsługa braku zasobu (404) zamiast null-checków
+- **`stream().toList()`** (Java 16+) — niemutowalna lista jako wynik mapowania encji na DTO
+- **`RestClient`** (Spring 6 / Boot 3.2+) — nowoczesne API HTTP zamiast przestarzałego `RestTemplate`
+- **Pattern matching, switch expressions, text blocks** — nie zastosowane; kod jest zbyt prosty, żeby ich użycie było naturalne a nie sztuczne
+
+### Angular 17+ — zastosowane podejście
+
+- **Standalone Components** — brak `NgModule`; każdy komponent sam deklaruje swoje zależności (analogia do braku Lomboka — mniej magii, więcej jawności)
+- **`inject()` function** — wstrzykiwanie zależności bez konstruktora; czytelniejsze w funkcyjnych guardach i interceptorach
+- **`@for`, `@if`, `@switch`** — nowa składnia control flow (Angular 17+) zamiast dyrektyw `*ngFor`, `*ngIf`
+- **Signals** — reaktywny stan (`signal()`, `computed()`) zamiast `BehaviorSubject` dla prostego stanu (np. isLoggedIn)
+- **Strictly Typed Reactive Forms** — `FormGroup<{ name: FormControl<string> }>` zamiast niegenerycznego `FormGroup`; błędy typów wykrywane w czasie kompilacji
+- **`readonly` na interfejsach** — modele danych niemutowalne przez konwencję (analogia do Java Records)
+- **Functional Guards** — `CanActivateFn` zamiast klas implementujących interfejs
+
+### Bezpieczeństwo frontendu (OWASP)
+
+- **Brak `localStorage`** do przechowywania sesji — sesja trzymana wyłącznie w HttpOnly cookie zarządzanym przez Spring Security
+- **Brak `[innerHTML]` i `bypassSecurityTrust*`** — Angular automatycznie escapuje interpolowane wartości; nie omijamy tego mechanizmu
+- **Interceptor 401** — wygaśnięcie sesji automatycznie przekierowuje na `/login`
+- **Disable submit podczas żądania** — zapobiega wielokrotnemu wysłaniu formularza
 
 ---
 
@@ -123,7 +140,8 @@ Operator floty / dyspozytor w firmie zajmującej się transportem morskim:
 ```
 src/main/java/com/shiptracker/
 ├── config/
-│   └── SecurityConfig.java          # CORS skonfigurowany wewnątrz SecurityConfig
+│   ├── SecurityConfig.java          # CORS, session, CSRF, AuthenticationManager, UserDetailsService
+│   └── AppConfig.java               # Bean RestClient (HTTP client dla NameGeneratorService)
 ├── controller/
 │   ├── AuthController.java
 │   ├── ShipController.java

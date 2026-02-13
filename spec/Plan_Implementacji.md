@@ -114,18 +114,20 @@ Plik `002-seed-data.xml` — dane testowe:
 
 `Ship.java`:
 - `id` (Long)
-- `name` (String, @NotBlank)
-- `launchDate` (LocalDate, @NotNull)
-- `shipType` (String, @NotBlank)
-- `tonnage` (BigDecimal, @Positive)
-- `locationReports` (@OneToMany, mappedBy="ship")
+- `name` (String, `@Column(nullable = false)`)
+- `launchDate` (LocalDate, `@Column(nullable = false)`)
+- `shipType` (String, `@Column(nullable = false)`)
+- `tonnage` (BigDecimal, `@Column(nullable = false, precision=12, scale=2)`)
+- `locationReports` (`@OneToMany`, mappedBy="ship", cascade=ALL, orphanRemoval=true)
 
 `LocationReport.java`:
 - `id` (Long)
-- `ship` (@ManyToOne, @JoinColumn)
-- `reportDate` (LocalDate, @NotNull)
-- `country` (String, @NotBlank)
-- `port` (String, @NotBlank)
+- `ship` (`@ManyToOne(fetch = LAZY)`, `@JoinColumn`)
+- `reportDate` (LocalDate, `@Column(nullable = false)`)
+- `country` (String, `@Column(nullable = false)`)
+- `port` (String, `@Column(nullable = false)`)
+
+> **Uwaga:** Adnotacje Bean Validation (`@NotBlank`, `@NotNull`, `@Positive`) należą do warstwy DTO (`ShipRequest`, `LocationReportRequest`), nie do encji. Encje są chronione przez `nullable = false` na poziomie bazy danych. Walidacja wejścia odbywa się w kontrolerze przez `@Valid @RequestBody`.
 
 LocationReport jest immutable by design — brak pól updatedAt, brak endpointu PUT/PATCH.
 
@@ -200,15 +202,15 @@ public record LocationReportResponse(
 **1.8 Stwórz kontrolery (Controller)**
 
 ```
-GET  /api/ships              → ShipController.getAll()
-POST /api/ships              → ShipController.create(@Valid @RequestBody ShipRequest)
-GET  /api/ships/{id}         → ShipController.getById()
-PUT  /api/ships/{id}         → ShipController.update(@Valid @RequestBody ShipRequest)
-GET  /api/ships/generate-name → ShipController.generateName()
-GET  /api/ships/{id}/reports → LocationReportController.getByShip()
-POST /api/ships/{id}/reports → LocationReportController.create(@Valid @RequestBody LocationReportRequest)
-POST /api/auth/login         → AuthController.login()
-POST /api/auth/logout        → AuthController.logout(HttpSession session)
+GET  /api/ships              → ShipController.getAll()             → 200 List<ShipResponse>
+POST /api/ships              → ShipController.create(...)          → 201 ShipResponse
+GET  /api/ships/{id}         → ShipController.getById()            → 200 ShipResponse
+PUT  /api/ships/{id}         → ShipController.update(...)          → 200 ShipResponse
+GET  /api/ships/generate-name → ShipController.generateName()      → 200 { "name": "..." }
+GET  /api/ships/{id}/reports → LocationReportController.getByShip() → 200 List<LocationReportResponse>
+POST /api/ships/{id}/reports → LocationReportController.create(...) → 201 LocationReportResponse
+POST /api/auth/login         → AuthController.login()              → 200 { "message": "Logged in successfully" }
+POST /api/auth/logout        → AuthController.logout(HttpSession)  → 200 { "message": "Logged out successfully" }
 ```
 
 **1.9 Skonfiguruj Spring Security**
@@ -233,12 +235,21 @@ Session-based zamiast JWT — prostsze dla tej skali. JWT jest potrzebny przy mi
 ```java
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    // MethodArgumentNotValidException → 400 + mapa błędów pól
-    // ResourceNotFoundException       → 404 + wiadomość
-    // Exception (fallback)            → 500 + wiadomość
-    // Odpowiedź: record ErrorResponse(String message, int status, Instant timestamp)
+
+    public record ErrorResponse(String message, int status, Instant timestamp) {}
+
+    // MethodArgumentNotValidException → 400 + Map<String, String> (pole → komunikat błędu)
+    //   Uwaga: ten handler zwraca Map, nie ErrorResponse — inna struktura niż pozostałe
+    // ResourceNotFoundException       → 404 + ErrorResponse
+    // AuthenticationException         → 401 + ErrorResponse ("Invalid credentials")
+    // ExternalApiException            → 503 + ErrorResponse
+    // Exception (fallback)            → 500 + ErrorResponse ("Internal server error")
 }
 ```
+
+`ExternalApiException` ma dwa konstruktory:
+- `ExternalApiException(String message)` — ogólny błąd API
+- `ExternalApiException(String message, Throwable cause)` — używany w `NameGeneratorService` przy `RestClientException`, zachowuje oryginalny stack trace
 
 ### Testy backendu:
 
@@ -351,25 +362,34 @@ export const environment = {
 };
 ```
 
-**2.4 Skonfiguruj HttpClient z interceptorem credentials**
+**2.4 Skonfiguruj HttpClient z interceptorami**
 
 `app.config.ts`:
 ```typescript
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideHttpClient(withInterceptors([credentialsInterceptor])),
+    provideHttpClient(withInterceptors([credentialsInterceptor, errorInterceptor])),
     provideRouter(routes)
   ]
 };
 ```
 
-Interceptor dodaje `{ withCredentials: true }` do każdego żądania — bez tego przeglądarka nie wyśle ciasteczka sesji i Spring Security odrzuci każdy request jako niezalogowany.
+Dwa interceptory:
+- `credentialsInterceptor` — dodaje `{ withCredentials: true }` do każdego żądania; bez tego przeglądarka nie wyśle ciasteczka sesji i Spring Security odrzuci każdy request jako niezalogowany
+- `errorInterceptor` — globalnie przechwytuje błąd 401 i przekierowuje na `/login` (wygaśnięcie sesji)
+
+**Konwencje bezpieczeństwa (obowiązują przez cały projekt):**
+- Nigdy nie używać `localStorage` / `sessionStorage` do przechowywania sesji — sesja żyje wyłącznie w HttpOnly cookie
+- Nigdy nie używać `[innerHTML]` ani `DomSanitizer.bypassSecurityTrust*` — Angular automatycznie escapuje wartości
+- Blokować przycisk submit podczas trwającego żądania HTTP (flaga `isLoading`)
 
 **2.5 Stwórz AuthService**
 ```typescript
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private loggedIn = signal(false);  // Angular Signals (Angular 17+)
+  private readonly http = inject(HttpClient);       // inject() zamiast konstruktora
+  private readonly router = inject(Router);
+  private readonly loggedIn = signal(false);        // Signal zamiast BehaviorSubject
 
   login(username: string, password: string): Observable<void>
   logout(): Observable<void>
@@ -377,7 +397,7 @@ export class AuthService {
 }
 ```
 
-`signal` to nowy mechanizm reaktywności w Angular 17+ — lżejszy i prostszy niż RxJS dla prostego stanu logowania.
+`signal` to nowy mechanizm reaktywności w Angular 17+ — lżejszy i prostszy niż RxJS dla prostego stanu logowania. `inject()` zastępuje konstruktor z parametrami — czytelniejsze w serwisach i guardach.
 
 **2.6 Stwórz AuthGuard (functional guard)**
 ```typescript
@@ -472,11 +492,17 @@ export class ShipService {
 
 Jeden komponent dla obu akcji — wykrywa tryb po obecności `:id` w URL. Jeśli id jest → tryb edycji (preload danych), bez id → tryb dodawania.
 
-Formularz (Angular Reactive Forms):
-- Nazwa statku (wymagane)
-- Data wodowania (wymagane)
-- Typ statku (wymagane)
-- Tonaż (wymagane, > 0)
+Formularz (Strictly Typed Reactive Forms):
+```typescript
+form = new FormGroup({
+  name:       new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+  launchDate: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+  shipType:   new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+  tonnage:    new FormControl<number | null>(null, [Validators.required, Validators.min(1)])
+});
+```
+
+`nonNullable: true` oznacza że `reset()` przywraca wartość domyślną zamiast `null` — brak niespodzianek typowych. TypeScript wykryje błędy typów w czasie kompilacji.
 - Przycisk „Generuj nazwę statku"
 
 **3.5 Zaimplementuj przycisk „Generuj nazwę statku"**
