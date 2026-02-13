@@ -20,22 +20,31 @@ docker --version      # Docker do bazy danych
 git --version
 ```
 
-**0.2 Uruchom bazę danych PostgreSQL w Dockerze**
+**0.2 Utwórz plik `.env` z kluczem API**
+
+W katalogu głównym projektu (obok `docker-compose.yml`):
+```
+RANDOMMER_API_KEY=twoj_klucz_api
+```
+Plik `.env` musi być w `.gitignore` — klucz nie może trafić do repozytorium.
+
+**0.3 Uruchom bazę danych (tylko postgres na etapie developmentu)**
 ```bash
-# Tworzymy plik docker-compose.yml w głównym katalogu projektu
-docker compose up -d
+docker compose up postgres -d
 
 # Weryfikacja:
 docker ps   # powinien być kontener postgres:16 działający na porcie 5432
 ```
+Na etapie developmentu uruchamiamy tylko postgresa. Backend i frontend odpalamy lokalnie (`./mvnw spring-boot:run`, `ng serve`) dla wygody (hot-reload). Pełny `docker compose up` (wszystkie 3 serwisy) uruchamiamy dopiero po ukończeniu frontendu w Etapie 5.
 
-**0.3 Stwórz repozytorium GitHub**
+**0.4 Stwórz repozytorium GitHub**
 - Utwórz nowe publiczne repo na GitHub (np. `ship-tracker`)
 - `git init`, `git remote add origin <URL>`
-- Dodaj `.gitignore` dla Java + Node
+- Dodaj `.gitignore` dla Java + Node + plik `.env`
 
 ### Definicja "done":
 - `docker ps` pokazuje działający kontener postgres
+- Plik `.env` istnieje w katalogu głównym i jest w `.gitignore`
 - Java 21 i Maven dostępne w terminalu
 - Angular CLI dostępne (`ng version`)
 - Puste repo na GitHubie gotowe
@@ -648,10 +657,10 @@ Input: `@Input() reports: LocationReport[]`
 
 ---
 
-## ETAP 5: Nawigacja, error handling, finalizacja
+## ETAP 5: Nawigacja, error handling, konteneryzacja, finalizacja
 
 ### Co robimy i dlaczego
-Aplikacja działa — teraz ją dopracowujemy: nawigacja, obsługa błędów, wygląd.
+Aplikacja działa — teraz ją dopracowujemy: nawigacja, obsługa błędów, wygląd. Na końcu konteneryzujemy frontend żeby całość uruchamiała się jedną komendą.
 
 ### Kroki:
 
@@ -674,7 +683,29 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
 Jeśli sesja wygaśnie i backend zwróci 401 — użytkownik zostanie automatycznie przekierowany na `/login`.
 
-**5.3 Finalna weryfikacja wymagań**
+**5.3 Dockerfile dla frontendu**
+
+Plik `ship-tracker-frontend/Dockerfile`:
+```dockerfile
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=build /app/dist/ship-tracker-frontend/browser /usr/share/nginx/html
+EXPOSE 80
+```
+
+Multi-stage build:
+- Etap 1: Node.js buduje aplikację (`ng build`) → pliki statyczne HTML/JS/CSS w katalogu `dist/`
+- Etap 2: nginx serwuje te pliki pod portem 80 (mapowanym na 4200 w docker-compose)
+
+Dlaczego nginx zamiast `ng serve` w kontenerze? `ng serve` to serwer deweloperski z hot-reloadem — nie nadaje się do "produkcji". nginx to lekki serwer HTTP zoptymalizowany do serwowania plików statycznych.
+
+**5.4 Finalna weryfikacja wymagań**
 
 - [ ] Ekran logowania — dostęp tylko po zalogowaniu
 - [ ] Lista statków: Dodaj / Edytuj / Szczegóły
@@ -683,38 +714,36 @@ Jeśli sesja wygaśnie i backend zwróci 401 — użytkownik zostanie automatycz
 - [ ] Formularz dodawania lokalizacji: data + kraj (słownik) + port
 - [ ] Wpisy lokalizacji są immutable (brak edycji)
 - [ ] Timeline — oś czasu posortowana chronologicznie
-- [ ] Docker + PostgreSQL działa
+- [ ] `docker compose up` uruchamia postgres + backend + frontend
+- [ ] Plik `.env` w `.gitignore`, klucz API nie w repozytorium
 - [ ] Liquibase zarządza schematem i seed data
 - [ ] Projekt na publicznym GitHubie z README
 
-**5.4 Zaktualizuj README**
+**5.5 Zaktualizuj README**
 ```markdown
 # Ship Tracker
 
 ## Uruchomienie
 
 ### Wymagania
-- Java 21, Maven
-- Docker
-- Node.js 20+, Angular CLI
+- Docker i Docker Compose
+- Klucz API randommer.io
 
-### Baza danych
-docker compose up -d
+### Konfiguracja
+Utwórz plik `.env` w katalogu głównym projektu:
+RANDOMMER_API_KEY=twoj_klucz_api
 
-### Backend
-cd ship-tracker-backend
-./mvnw spring-boot:run
+### Uruchomienie (jedna komenda)
+docker compose up
 
-### Frontend
-cd ship-tracker-frontend
-npm install
-ng serve
+Aplikacja dostępna pod: http://localhost:4200
+Backend API pod: http://localhost:8080
 
 ### Logowanie
 Login: admin | Hasło: admin123
 ```
 
-**5.5 Push na GitHub**
+**5.6 Push na GitHub**
 ```bash
 git add .
 git commit -m "feat: ship tracker - full implementation"
@@ -723,6 +752,7 @@ git push origin main
 
 ### Definicja "done":
 - Wszystkie checkboxy z weryfikacji wymagań zaznaczone
+- `docker compose up` uruchamia całość — postgres, backend, frontend
 - Aplikacja działa end-to-end: logowanie → statki → lokalizacje → timeline
 - Kod na publicznym GitHubie z działającym README
 

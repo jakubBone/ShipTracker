@@ -59,6 +59,7 @@ Operator floty / dyspozytor w firmie zajmującej się transportem morskim:
 | Baza danych | PostgreSQL 16 w Dockerze |
 | Migracje i seed | Liquibase |
 | Frontend | Angular (najnowsza stabilna) |
+| Konteneryzacja | Docker Compose — postgres + backend + frontend |
 | Repo | Publiczne repozytorium GitHub |
 
 ### Java 21 — zastosowane podejście
@@ -91,7 +92,10 @@ Operator floty / dyspozytor w firmie zajmującej się transportem morskim:
 # 5. Zewnętrzne API
 
 **Randommer.io — generowanie nazwy statku**
-- Klucz API przechowywany w `application.properties` (nie w kodzie)
+- Klucz API przechowywany w pliku `.env` w katalogu głównym projektu (nie w kodzie)
+- Plik `.env` jest w `.gitignore` — klucz nie trafia do repozytorium
+- Docker Compose czyta klucz z `.env` i przekazuje go do kontenera backendu jako zmienna środowiskowa
+- Spring Boot odczytuje go przez `${RANDOMMER_API_KEY}` w `application.properties`
 - Backend eksponuje endpoint `/api/ships/generate-name` → wywołuje randommer.io
 - Frontend wywołuje tylko backend (klucz API nie jest widoczny po stronie klienta)
 - Obsługa błędu: gdy API nie odpowie → 503 z komunikatem
@@ -201,7 +205,16 @@ src/app/
 └── shared/components/timeline/
 ```
 
-## Docker (`docker-compose.yml`)
+## Docker
+
+Wszystkie trzy serwisy uruchamiane jedną komendą: `docker compose up`
+
+Klucz API randommer.io przechowywany w pliku `.env` (poza repozytorium):
+```
+RANDOMMER_API_KEY=twoj_klucz_api
+```
+
+### `docker-compose.yml`
 ```yaml
 services:
   postgres:
@@ -214,9 +227,41 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./ship-tracker-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/shiptracker_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      RANDOMMER_API_KEY: ${RANDOMMER_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build: ./ship-tracker-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
 ```
+
+### `ship-tracker-backend/Dockerfile`
+Multi-stage build: JDK do kompilacji → JRE do uruchomienia (mniejszy obraz końcowy).
+
+### `ship-tracker-frontend/Dockerfile`
+Multi-stage build: Node.js do `ng build` → nginx do serwowania plików statycznych.
 
 ---
 
