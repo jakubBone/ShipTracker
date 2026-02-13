@@ -425,30 +425,46 @@ Guard stoi przed każdą chronioną trasą. Jeśli użytkownik nie jest zalogowa
 - Obsługa błędu 401 → komunikat „Nieprawidłowe dane logowania"
 - Po sukcesie: redirect na `/ships`
 
-**2.8 Skonfiguruj routing**
+**2.8 Skonfiguruj routing (tylko trasy Etapu 2)**
+
+Routing budujemy przyrostowo — dodajemy trasy tylko dla komponentów które już istnieją. Trasy `/ships` zostaną dodane w Etapie 3.
+
 ```typescript
 export const routes: Routes = [
-  { path: 'login', component: LoginComponent },
-  { path: 'ships', component: ShipListComponent, canActivate: [authGuard] },
-  { path: 'ships/new', component: ShipFormComponent, canActivate: [authGuard] },
-  { path: 'ships/:id', component: ShipDetailComponent, canActivate: [authGuard] },
-  { path: 'ships/:id/edit', component: ShipFormComponent, canActivate: [authGuard] },
-  { path: '', redirectTo: '/ships', pathMatch: 'full' }
+  { path: 'login', component: Login },
+  { path: '', redirectTo: '/login', pathMatch: 'full' }
 ];
 ```
+
+### Jak uruchomić do testów
+
+```bash
+# Terminal 1 — baza danych
+docker compose up postgres -d
+
+# Terminal 2 — backend
+cd ship-tracker-backend
+./mvnw spring-boot:run
+
+# Terminal 3 — frontend
+cd ship-tracker-frontend
+ng serve
+```
+
+Otwórz: `http://localhost:4200`
 
 ### Test:
 
 1. Otwórz `http://localhost:4200` → redirect na `/login`
-2. Wpisz `admin` / `admin123` → redirect na `/ships`
-3. Bezpośredni URL `/ships` bez zalogowania → redirect na `/login`
-4. Złe hasło → komunikat błędu, brak redirectu
+2. Wpisz złe hasło → komunikat „Nieprawidłowe dane logowania", brak redirectu
+3. Wpisz `admin` / `admin123` → redirect na `/ships` (pusta strona — komponent powstanie w Etapie 3, redirect jest poprawny)
+4. Przycisk „Zaloguj się" zablokowany podczas trwającego żądania
 
 ### Definicja "done":
 - `ng serve` działa bez błędów kompilacji
-- Strona logowania wyświetla się pod localhost:4200/login
-- Poprawne dane → redirect na `/ships`
-- Niezalogowany user próbujący wejść na `/ships` → redirect na `/login`
+- Strona logowania wyświetla się pod `localhost:4200/login`
+- Błędne dane → komunikat błędu widoczny pod formularzem
+- Poprawne dane → redirect na `/ships` (route jeszcze nie wyrenderuje widoku — to Etap 3)
 
 ---
 
@@ -531,22 +547,57 @@ Backend wywołuje randommer.io — klucz API jest bezpieczny po stronie serwera,
 - Wyświetl błędy pod polami (np. „Pole wymagane")
 - Zablokuj submit jeśli formularz niepoprawny
 
+**3.7 Dodaj trasy do routingu**
+
+Rozszerzamy `app.routes.ts` o trasy statków. Trasa `/ships/:id` (szczegóły) zostanie dodana w Etapie 4.
+
+```typescript
+export const routes: Routes = [
+  { path: 'login', component: Login },
+  { path: 'ships', component: ShipList, canActivate: [authGuard] },
+  { path: 'ships/new', component: ShipForm, canActivate: [authGuard] },
+  { path: 'ships/:id/edit', component: ShipForm, canActivate: [authGuard] },
+  { path: '', redirectTo: '/login', pathMatch: 'full' }
+];
+```
+
+Uwaga: `ships/new` musi być przed `ships/:id` (Etap 4) — Angular dopasowuje trasy od góry, `new` byłoby inaczej potraktowane jako `:id`.
+
+### Jak uruchomić do testów
+
+```bash
+# Terminal 1 — baza danych
+docker compose up postgres -d
+
+# Terminal 2 — backend
+cd ship-tracker-backend
+./mvnw spring-boot:run
+
+# Terminal 3 — frontend
+cd ship-tracker-frontend
+ng serve
+```
+
+Otwórz: `http://localhost:4200` → zaloguj się → lista statków
+
 ### Test:
 
-1. Otwórz `/ships` → tabela z 4 statkami z seed data
-2. Kliknij „Dodaj nowy statek" → formularz pusty
-3. Kliknij „Generuj nazwę" → pole name uzupełnione
-4. Wypełnij pozostałe pola → submit → redirect na listę, nowy statek widoczny
-5. Kliknij „Edytuj" przy statku → formularz z danymi statku
-6. Zmień nazwę → submit → lista zaktualizowana
-7. Submit bez wypełnienia pól → błędy walidacji pod polami
+1. Wejdź na `localhost:4200` → zaloguj się → tabela z 4 statkami z seed data
+2. Bezpośredni URL `/ships` bez zalogowania → redirect na `/login` (guard działa)
+3. Kliknij „Dodaj nowy statek" → formularz pusty
+4. Submit bez wypełnienia pól → błędy walidacji pod polami
+5. Kliknij „Generuj nazwę" → pole name uzupełnione
+6. Wypełnij pozostałe pola → submit → redirect na listę, nowy statek widoczny
+7. Kliknij „Edytuj" przy statku → formularz z danymi statku
+8. Zmień nazwę → submit → lista zaktualizowana
 
 ### Definicja "done":
-- Lista statków wyświetla dane z bazy (te z seed data)
+- Lista statków wyświetla dane z bazy (seed data — 4 statki)
+- Bezpośrednie wejście na `/ships` bez logowania → redirect na `/login`
 - Formularz dodawania działa — nowy statek pojawia się na liście
 - Formularz edycji działa — dane się zapisują
 - Przycisk „Generuj nazwę" wypełnia pole nazwy
-- Walidacja wyświetla błędy
+- Walidacja wyświetla błędy pod polami
 
 ---
 
@@ -616,7 +667,15 @@ Reactive Form:
 - Walidatory: required na wszystkich polach
 - Submit → `LocationReportService.create()` → emituje zdarzenie do rodzica
 
-**4.6 Stwórz TimelineComponent**
+**4.6 Dodaj trasę szczegółów do routingu**
+
+Rozszerzamy `app.routes.ts` o ostatnią brakującą trasę. Musi być po `ships/new` i `ships/:id/edit`:
+
+```typescript
+{ path: 'ships/:id', component: ShipDetail, canActivate: [authGuard] },
+```
+
+**4.7 Stwórz TimelineComponent**
 
 Input: `@Input() reports: LocationReport[]`
 
@@ -637,21 +696,37 @@ Input: `@Input() reports: LocationReport[]`
 
 `@for` to nowa składnia Angular 17+ (control flow) zamiast `*ngFor`. CSS timeline: linia pionowa po lewej, kropki przy każdym wpisie, karty z danymi.
 
+### Jak uruchomić do testów
+
+```bash
+# Terminal 1 — baza danych
+docker compose up postgres -d
+
+# Terminal 2 — backend
+cd ship-tracker-backend
+./mvnw spring-boot:run
+
+# Terminal 3 — frontend
+cd ship-tracker-frontend
+ng serve
+```
+
+Otwórz: `http://localhost:4200` → zaloguj się → lista statków → kliknij „Szczegóły"
+
 ### Test:
 
-1. Kliknij „Szczegóły" przy pierwszym statku z seed data
-2. Widoczna karta z danymi statku
-3. Timeline wyświetla historię lokalizacji z seed data (posortowana chronologicznie)
-4. Wypełnij formularz: data + kraj + port → submit
-5. Nowy wpis pojawia się na timeline
-6. Odśwież stronę (F5) → wpis nadal widoczny (zapisany w bazie)
-7. Brak przycisków edycji przy wpisach timeline
+1. Kliknij „Szczegóły" przy pierwszym statku z seed data → widok szczegółów z kartą danych statku
+2. Timeline wyświetla historię lokalizacji z seed data (posortowana chronologicznie)
+3. Wypełnij formularz lokalizacji: data + kraj (select) + port → submit
+4. Nowy wpis pojawia się na timeline bez przeładowania strony
+5. Odśwież stronę (F5) → wpis nadal widoczny (zapisany w bazie)
+6. Brak przycisków edycji przy wpisach timeline
 
 ### Definicja "done":
 - Widok szczegółów statku wyświetla dane statku
 - Timeline pokazuje historię lokalizacji (z seed data) posortowaną chronologicznie
-- Formularz dodawania wpisu działa
-- Nowy wpis pojawia się na timeline bez odświeżania strony
+- Formularz dodawania wpisu lokalizacji działa
+- Nowy wpis pojawia się na timeline bez przeładowania strony
 - Pola formularza są walidowane (wymagane)
 - Brak możliwości edycji istniejących wpisów (tylko wyświetlanie)
 
@@ -746,12 +821,33 @@ Login: admin | Hasło: admin123
 **5.6 Push na GitHub**
 ```bash
 git add .
-git commit -m "feat: ship tracker - full implementation"
+git commit -m "feat(frontend): finalize Angular app with navbar and docker support"
 git push origin main
 ```
 
+### Jak uruchomić do testów (finalne — cały stack w Dockerze)
+
+```bash
+# Upewnij się że plik .env istnieje z kluczem RANDOMMER_API_KEY
+docker compose up
+```
+
+Otwórz: `http://localhost:4200`
+
+### Test:
+
+1. `docker compose up` uruchamia wszystkie 3 serwisy bez błędów
+2. Wejdź na `localhost:4200` → formularz logowania
+3. Zaloguj się `admin/admin123` → lista statków z seed data
+4. Dodaj statek (z wygenerowaną nazwą) → pojawia się na liście
+5. Edytuj statek — zmień tonaż → dane zaktualizowane
+6. Przejdź do szczegółów statku → karta + timeline z seed data
+7. Dodaj wpis lokalizacji: data + kraj + port → pojawia się na timeline
+8. Odśwież stronę → wszystkie dane zachowane
+9. Kliknij „Wyloguj" → redirect na `/login`, próba wejścia na `/ships` → redirect na `/login`
+
 ### Definicja "done":
-- Wszystkie checkboxy z weryfikacji wymagań zaznaczone
+- Wszystkie checkboxy z sekcji 5.4 zaznaczone
 - `docker compose up` uruchamia całość — postgres, backend, frontend
 - Aplikacja działa end-to-end: logowanie → statki → lokalizacje → timeline
 - Kod na publicznym GitHubie z działającym README
