@@ -1,0 +1,16 @@
+@if (reports.length === 0) {
+  <p class="timeline-empty">Brak wpisów lokalizacji.</p>
+} @else {
+  <div class="timeline">
+    @for (report of reports; track report.id) {
+      <div class="timeline-item">
+        <div class="timeline-marker"></div>
+        <div class="timeline-content">
+          <span class="timeline-date">{{ report.reportDate | date:'dd.MM.yyyy' }}</span>
+          <span class="timeline-country">{{ report.country }}</span>
+          <span class="timeline-port">Port: {{ report.port }}</span>
+        </div>
+      </div>
+    }
+  </div>
+}

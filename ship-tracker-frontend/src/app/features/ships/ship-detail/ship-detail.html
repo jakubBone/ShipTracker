@@ -1,0 +1,55 @@
+<div class="ship-detail-container">
+
+  <button mat-button (click)="goBack()" class="back-button">
+    <mat-icon>arrow_back</mat-icon>
+    Powrót do listy
+  </button>
+
+  @if (ship(); as ship) {
+    <mat-card class="ship-info-card">
+      <mat-card-header>
+        <mat-card-title>{{ ship.name }}</mat-card-title>
+        <mat-card-subtitle>{{ ship.shipType }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="ship-info-grid">
+          <div class="info-item">
+            <span class="info-label">Data wodowania</span>
+            <span class="info-value">{{ ship.launchDate | date:'dd.MM.yyyy' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Tonaż</span>
+            <span class="info-value">{{ ship.tonnage | number }} t</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Liczba raportów</span>
+            <span class="info-value">{{ ship.reportCount }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="detail-columns">
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>Dodaj wpis lokalizacji</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-location-report-form
+            [shipId]="ship.id"
+            (reportAdded)="onReportAdded($event)" />
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="timeline-card">
+        <mat-card-header>
+          <mat-card-title>Historia lokalizacji</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <app-timeline [reports]="reports()" />
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+
+</div>
