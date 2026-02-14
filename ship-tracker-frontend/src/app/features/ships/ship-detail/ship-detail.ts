@@ -3,7 +3,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ShipService } from '../../../core/services/ship.service';
 import { LocationReportService } from '../../../core/services/location-report.service';
@@ -18,7 +17,6 @@ import { LocationReportForm } from './location-report-form/location-report-form'
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatDividerModule,
     DatePipe,
     DecimalPipe,
     Timeline,
