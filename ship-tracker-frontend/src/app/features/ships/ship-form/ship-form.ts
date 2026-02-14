@@ -7,6 +7,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ShipService } from '../../../core/services/ship.service';
 
 const SHIP_TYPES = ['Cargo', 'Tanker', 'Container', 'Bulk Carrier'];
@@ -20,7 +21,8 @@ const SHIP_TYPES = ['Cargo', 'Tanker', 'Container', 'Bulk Carrier'];
     MatSelectModule,
     MatButtonModule,
     MatCardModule,
-    MatIconModule
+    MatIconModule,
+    MatDatepickerModule
   ],
   templateUrl: './ship-form.html',
   styleUrl: './ship-form.scss'
@@ -36,10 +38,10 @@ export class ShipForm implements OnInit {
   protected editId: number | null = null;
 
   protected readonly form = new FormGroup({
-    name: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
-    launchDate: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
-    shipType: new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
-    tonnage: new FormControl<number | null>(null, [Validators.required, Validators.min(1)])
+    name:       new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+    launchDate: new FormControl<Date | null>(null, [Validators.required]),
+    shipType:   new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
+    tonnage:    new FormControl<number | null>(null, [Validators.required, Validators.min(1)])
   });
 
   ngOnInit(): void {
@@ -50,7 +52,7 @@ export class ShipForm implements OnInit {
         next: (ship) => {
           this.form.patchValue({
             name: ship.name,
-            launchDate: ship.launchDate,
+            launchDate: new Date(ship.launchDate),
             shipType: ship.shipType,
             tonnage: ship.tonnage
           });
@@ -78,7 +80,7 @@ export class ShipForm implements OnInit {
     const value = this.form.getRawValue();
     const request = {
       name: value.name,
-      launchDate: value.launchDate,
+      launchDate: this.toIsoDate(value.launchDate as Date),
       shipType: value.shipType,
       tonnage: value.tonnage as number
     };
@@ -95,5 +97,12 @@ export class ShipForm implements OnInit {
 
   protected cancel(): void {
     this.router.navigate(['/ships']);
+  }
+
+  private toIsoDate(date: Date): string {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }
 }

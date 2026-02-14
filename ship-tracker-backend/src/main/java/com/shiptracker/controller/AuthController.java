@@ -10,6 +10,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 import java.util.Map;
 
 @RestController
@@ -39,5 +41,10 @@ public class AuthController {
         session.invalidate();
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, String>> me(Principal principal) {
+        return ResponseEntity.ok(Map.of("username", principal.getName()));
     }
 }

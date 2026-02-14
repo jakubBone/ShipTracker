@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, catchError, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -21,6 +21,16 @@ export class AuthService {
       tap(() => {
         this.loggedIn.set(false);
         this.router.navigate(['/login']);
+      })
+    );
+  }
+
+  checkSession(): Observable<void> {
+    return this.http.get<void>(`${environment.apiUrl}/auth/me`).pipe(
+      tap(() => this.loggedIn.set(true)),
+      catchError(() => {
+        this.loggedIn.set(false);
+        return of(undefined);
       })
     );
   }

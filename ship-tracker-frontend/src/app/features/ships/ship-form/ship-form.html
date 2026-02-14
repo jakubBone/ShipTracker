@@ -40,7 +40,9 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Data wodowania</mat-label>
-          <input matInput type="date" formControlName="launchDate">
+          <input matInput [matDatepicker]="launchDatePicker" formControlName="launchDate" placeholder="DD.MM.RRRR">
+          <mat-datepicker-toggle matIconSuffix [for]="launchDatePicker" />
+          <mat-datepicker #launchDatePicker />
           @if (form.controls.launchDate.invalid && form.controls.launchDate.touched) {
             <mat-error>Pole wymagane</mat-error>
           }
