@@ -28,5 +28,12 @@ services:
       postgres:
         condition: service_healthy
 
+  frontend:
+    build: ./ship-tracker-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
