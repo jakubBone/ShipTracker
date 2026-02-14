@@ -1,4 +1,4 @@
-# Ship Tracker
+# 🚢 Ship Tracker 
 
 ![Ship Tracker](ship-tracker-frontend/public/logo.jpg)
 
@@ -10,60 +10,37 @@
 
 A web application for managing ships and reporting their voyages.
 
-> Planning documentation in `/spec` is in Polish (working language).
+## ✨ Features
 
-## Requirements
+- **Ship management** - add, edit, and browse the fleet with a data table
+- **Voyage reporting** - log location entries (date, country, port) per ship; entries are immutable once saved
+- **Voyage timeline** - chronological view of a ship's position history
+- **Name generator** - generate a ship name via external API with one click
+- **Session-based auth** - protected routes, login/logout flow
 
-- Java 21
-- Maven
-- Docker
-- Node.js 20+
-- Angular CLI
+---
 
-## Configuration
+## 🚀 Quick Start
 
-The ship name generator uses the [randommer.io](https://randommer.io) API.
+**Requirements:** Docker
 
-Copy `.env.example` to `.env` and set your API key (free registration):
-```bash
-cp .env.example .env
-```
+Get a free API key at [randommer.io](https://randommer.io), copy `.env.example` to `.env` and set:
 
 ```
 RANDOMMER_API_KEY=your_key_here
 ```
 
-Without the key the application starts normally, but the "Generate name" button returns a 503 error.
+Then:
 
-## Running the application
-
-### 1. Database
 ```bash
-docker compose up -d
+docker compose up
 ```
 
-### 2. Backend
-```bash
-cd ship-tracker-backend
-./mvnw spring-boot:run
-```
+Open **http://localhost:4200** - login: `admin` / `admin123`
 
-### 3. Frontend
-```bash
-cd ship-tracker-frontend
-npm install
-ng serve
-```
+---
 
-Application available at: http://localhost:4200
-
-## Login credentials
-
-| Username | Password |
-|----------|----------|
-| admin    | admin123 |
-
-## Tech stack
+## 🛠 Tech Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -73,3 +50,48 @@ Application available at: http://localhost:4200
 | Database | PostgreSQL 16 (Docker) |
 | Migrations | Liquibase |
 | Frontend | Angular, Angular Material |
+
+---
+
+## 🤖 Development Approach
+
+> Built with [Claude Code](https://claude.ai/code): AI-assisted pair programming, spec-first workflow
+
+Backend is my stronger side. Frontend is an area I'm currently developing.
+
+This project was a challenge to step outside my comfort zone.
+I used Claude Code (Sonnet 4.5) to speed up development while actively reviewing and controlling its output.
+
+| Step | What happened                                                                                                                                                                                                                                 |
+|------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 📋 **Spec first** | I wrote the requirements: scope, business rules, edge cases, acceptance criteria. I had it reviewed by two models (Claude + Gemini), evaluated both responses, merged the insights, and updated the spec myself. That became `spec/Brief.md`. |
+| 📌 **Implementation plan** | I turned the brief into `spec/Plan_Implementacji.md` - reviewed with models again, then finalised: staged plan, definition of done per stage, test coverage requirements in `spec/Plan_Testow_Backend.md`.                                    |
+| 👨‍💻 **Pair programming** | I used Claude Code to implement large parts of the code. I read and reviewed every generated file before moving on - that's how I caught missing test cases in the first backend pass and fixed them.                                         |
+| 📝 **Living spec** | When better approaches came up during development, even if they differed from the plan, I updated the spec accordingly.                                                                                                                       |
+| 📚 **Learn, don't delegate** | When I didn't fully understand something, I asked for explanations and examples, and saved the reasoning locally as learning notes, so I'd actually learn it.                                                                                 |
+
+---
+
+## 📁 Project Structure
+
+```
+ship-tracker/
+├── docker-compose.yml
+├── spec/                          # Planning docs (Brief, Implementation Plan, Test Plan)
+├── ship-tracker-backend/
+│   └── src/main/java/com/shiptracker/
+│       ├── config/                # Security, app configuration
+│       ├── controller/            # REST controllers (Auth, Ships, Reports)
+│       ├── service/               # Business logic
+│       ├── repository/            # Spring Data JPA repositories
+│       ├── entity/                # JPA entities (Ship, LocationReport, User)
+│       ├── dto/                   # Request/Response records
+│       └── exception/             # Global exception handler
+└── ship-tracker-frontend/
+    └── src/app/
+        ├── core/                  # Services, models, guards, interceptors
+        └── features/
+            ├── auth/              # Login page
+            └── ships/             # Ship list, ship form, ship detail
+                └── ship-detail/   # Location report form, voyage timeline
+```
