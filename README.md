@@ -1,5 +1,13 @@
 # Ship Tracker
 
+![Ship Tracker](ship-tracker-frontend/public/logo.jpg)
+
+[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.2-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Angular](https://img.shields.io/badge/Angular-21-red.svg)](https://angular.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue.svg)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
+
 A web application for managing ships and reporting their voyages.
 
 > Planning documentation in `/spec` is in Polish (working language).
