@@ -1,0 +1,70 @@
+<div class="ship-form-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ isEditMode ? 'Edytuj statek' : 'Dodaj nowy statek' }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="ship-form">
+
+        <div class="name-row">
+          <mat-form-field appearance="outline" class="name-field">
+            <mat-label>Nazwa statku</mat-label>
+            <input matInput formControlName="name" placeholder="Wpisz nazwę">
+            @if (form.controls.name.invalid && form.controls.name.touched) {
+              <mat-error>Pole wymagane</mat-error>
+            }
+          </mat-form-field>
+
+          <button type="button" mat-stroked-button (click)="generateName()">
+            <mat-icon>casino</mat-icon>
+            Generuj nazwę
+          </button>
+        </div>
+
+        @if (nameError()) {
+          <p class="name-error">{{ nameError() }}</p>
+        }
+
+        <mat-form-field appearance="outline">
+          <mat-label>Typ statku</mat-label>
+          <mat-select formControlName="shipType">
+            @for (type of shipTypes; track type) {
+              <mat-option [value]="type">{{ type }}</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.shipType.invalid && form.controls.shipType.touched) {
+            <mat-error>Pole wymagane</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Data wodowania</mat-label>
+          <input matInput type="date" formControlName="launchDate">
+          @if (form.controls.launchDate.invalid && form.controls.launchDate.touched) {
+            <mat-error>Pole wymagane</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tonaż (t)</mat-label>
+          <input matInput type="number" formControlName="tonnage" placeholder="np. 50000">
+          @if (form.controls.tonnage.hasError('required') && form.controls.tonnage.touched) {
+            <mat-error>Pole wymagane</mat-error>
+          }
+          @if (form.controls.tonnage.hasError('min') && form.controls.tonnage.touched) {
+            <mat-error>Tonaż musi być większy od 0</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button type="button" mat-button (click)="cancel()">Anuluj</button>
+          <button type="submit" mat-raised-button color="primary" [disabled]="form.invalid || isLoading()">
+            {{ isEditMode ? 'Zapisz zmiany' : 'Dodaj statek' }}
+          </button>
+        </div>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

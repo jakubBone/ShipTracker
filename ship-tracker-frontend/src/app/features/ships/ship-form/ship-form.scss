@@ -1,0 +1,44 @@
+.ship-form-container {
+  padding: 24px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.ship-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.name-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+
+  .name-field {
+    flex: 1;
+  }
+
+  button {
+    margin-top: 4px;
+    white-space: nowrap;
+  }
+}
+
+.name-error {
+  color: var(--mat-sys-error);
+  font-size: 12px;
+  margin: -4px 0 4px 0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
