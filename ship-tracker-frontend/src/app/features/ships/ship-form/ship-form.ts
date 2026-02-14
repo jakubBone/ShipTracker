@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ShipService } from '../../../core/services/ship.service';
 
-const SHIP_TYPES = ['Cargo', 'Tanker', 'Container', 'Bulk Carrier'];
+const SHIP_TYPES = ['Frachtowiec', 'Tankowiec', 'Kontenerowiec', 'Masowiec'];
 
 @Component({
   selector: 'app-ship-form',
