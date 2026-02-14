@@ -22,17 +22,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /*
- * @SpringBootTest is used instead of @WebMvcTest because @WebMvcTest only loads
- * the HTTP layer and does not fully initialize SecurityConfig.
+ * I use @SpringBootTest here because with @WebMvcTest
+ * does not load the security configuration, so...
  *
- * When @MockitoBean AuthenticationManager is registered, the sliced context does
- * not create the SecurityConfig.userDetailsService() bean (nothing needs it yet).
- * As a result, UserDetailsServiceAutoConfiguration creates its own
- * inMemoryUserDetailsManager, Spring Boot applies the default HTTP Basic security,
- * and the permitAll() rule on /api/auth/login never takes effect.
+ * ... the AuthenticationManager and UserDetailsService
+ * are not created
  *
- * @SpringBootTest loads the full application context (H2 from test/resources),
- * so SecurityConfig is fully initialized and permitAll() works as expected.
+ * Spring then creates its own in-memory manager,
+ * enables default HTTP Basic security,
+ * and permitAll() is ignored.
+ *
+ * @SpringBootTest loads everything properly.
  */
 @SpringBootTest
 @AutoConfigureMockMvc

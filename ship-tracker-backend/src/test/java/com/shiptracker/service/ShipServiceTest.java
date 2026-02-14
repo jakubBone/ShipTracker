@@ -37,7 +37,7 @@ class ShipServiceTest {
         ship.setLaunchDate(LocalDate.of(2000, 1, 1));
         ship.setShipType("Cargo");
         ship.setTonnage(new BigDecimal("1000.00"));
-        // locationReports is empty ArrayList by default — size() == reportCount only when we add them
+        // locationReports is empty ArrayList by default (size() == reportCount only when need to add them)
         // for simplicity reportCount is modelled via the default empty list (size == 0) or populated list
         for (int i = 0; i < reportCount; i++) {
             ship.getLocationReports().add(null); // placeholder to inflate size

@@ -15,7 +15,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("unchecked") // RequestHeadersUriSpec and RequestHeadersSpec are generic — Mockito requires raw types here, warning is harmless
 class NameGeneratorServiceTest {
 
     @Mock
