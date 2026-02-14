@@ -12,6 +12,21 @@ A web application for managing ships and reporting their voyages.
 - Node.js 20+
 - Angular CLI
 
+## Configuration
+
+The ship name generator uses the [randommer.io](https://randommer.io) API.
+
+Copy `.env.example` to `.env` and set your API key (free registration):
+```bash
+cp .env.example .env
+```
+
+```
+RANDOMMER_API_KEY=your_key_here
+```
+
+Without the key the application starts normally, but the "Generate name" button returns a 503 error.
+
 ## Running the application
 
 ### 1. Database
