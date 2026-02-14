@@ -34,3 +34,9 @@ Thumbs.db
 # Environment secrets
 .env
 *.env
+
+# Claude Code local settings
+.claude/
+
+# Spring Initializr metadata
+initializr-meta.json
