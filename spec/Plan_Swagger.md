@@ -27,8 +27,9 @@ Po implementacji dokumentacja dostępna pod:
 Wersja `2.x` wymagana dla Spring Boot 3.x — `1.x` działa tylko z Boot 2.x. Sama ta zależność wystarczy żeby Swagger UI było dostępne — springdoc skanuje kontrolery i generuje spec automatycznie przy starcie aplikacji.
 
 ### Definicja "done":
-- `./mvnw spring-boot:run` startuje bez błędów
-- `http://localhost:8080/swagger-ui.html` wyświetla Swagger UI
+- `./mvnw compile` kończy się bez błędów (zależność pobrana i widoczna)
+
+> Swagger UI nie będzie jeszcze dostępne — Spring Security blokuje te ścieżki do czasu Etapu 3.
 
 ---
 
@@ -68,8 +69,9 @@ Dwie rzeczy do wyjaśnienia:
 **`addSecurityItem`** — aplikuje schemat `cookieAuth` globalnie na wszystkie endpointy. Bez tego kłódka byłaby widoczna, ale żaden endpoint nie byłby oznaczony jako wymagający autoryzacji. Endpointy publiczne (login, logout) nadpiszemy indywidualnie adnotacją `@SecurityRequirements({})` w Etapie 4.
 
 ### Definicja "done":
-- Swagger UI pokazuje tytuł „ShipTracker API" i wersję „1.0.0"
-- Przy endpointach widoczna kłódka (schemat sesji zarejestrowany globalnie)
+- `./mvnw compile` kończy się bez błędów (bean `OpenAPI` zarejestrowany)
+
+> Weryfikacja w Swagger UI (tytuł, kłódka) możliwa dopiero po Etapie 3.
 
 ---
 
