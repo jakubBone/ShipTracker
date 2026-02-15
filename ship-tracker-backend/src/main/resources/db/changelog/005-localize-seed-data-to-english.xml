@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Switch application locale from Polish to English -->
+
+    <changeSet id="005-localize-ship-types" author="shiptracker">
+        <update tableName="ships">
+            <column name="ship_type" value="Cargo Ship"/>
+            <where>ship_type = 'Frachtowiec'</where>
+        </update>
+        <update tableName="ships">
+            <column name="ship_type" value="Tanker"/>
+            <where>ship_type = 'Tankowiec'</where>
+        </update>
+        <update tableName="ships">
+            <column name="ship_type" value="Container Ship"/>
+            <where>ship_type = 'Kontenerowiec'</where>
+        </update>
+        <update tableName="ships">
+            <column name="ship_type" value="Bulk Carrier"/>
+            <where>ship_type = 'Masowiec'</where>
+        </update>
+        <update tableName="ships">
+            <column name="ship_type" value="Frigate"/>
+            <where>ship_type = 'Fregata'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="005-localize-countries" author="shiptracker">
+        <update tableName="location_reports">
+            <column name="country" value="Poland"/>
+            <where>country = 'Polska'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Germany"/>
+            <where>country = 'Niemcy'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Netherlands"/>
+            <where>country = 'Holandia'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Norway"/>
+            <where>country = 'Norwegia'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Denmark"/>
+            <where>country = 'Dania'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Sweden"/>
+            <where>country = 'Szwecja'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Finland"/>
+            <where>country = 'Finlandia'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Spain"/>
+            <where>country = 'Hiszpania'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="France"/>
+            <where>country = 'Francja'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Italy"/>
+            <where>country = 'Włochy'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Greece"/>
+            <where>country = 'Grecja'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Turkey"/>
+            <where>country = 'Turcja'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Latvia"/>
+            <where>country = 'Łotwa'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="country" value="Lithuania"/>
+            <where>country = 'Litwa'</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="005-localize-ports" author="shiptracker">
+        <update tableName="location_reports">
+            <column name="port" value="Copenhagen"/>
+            <where>port = 'Kopenhaga'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="port" value="Marseille"/>
+            <where>port = 'Marsylia'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="port" value="Genoa"/>
+            <where>port = 'Genua'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="port" value="Piraeus"/>
+            <where>port = 'Pireus'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="port" value="Istanbul"/>
+            <where>port = 'Stambuł'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="port" value="Riga"/>
+            <where>port = 'Ryga'</where>
+        </update>
+        <update tableName="location_reports">
+            <column name="port" value="Gdansk"/>
+            <where>port = 'Gdańsk'</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

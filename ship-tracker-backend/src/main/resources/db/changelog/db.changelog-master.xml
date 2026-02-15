@@ -9,5 +9,6 @@
     <include file="classpath:db/changelog/002-seed-data.xml"/>
     <include file="classpath:db/changelog/003-translate-seed-data.xml"/>
     <include file="classpath:db/changelog/004-update-admin-role.xml"/>
+    <include file="classpath:db/changelog/005-localize-seed-data-to-english.xml"/>
 
 </databaseChangeLog>

@@ -40,7 +40,7 @@ class LocationReportControllerTest {
     private UserRepository userRepository;
 
     private LocationReportResponse buildResponse() {
-        return new LocationReportResponse(1L, LocalDate.of(2024, 6, 1), "Poland", "Gdańsk");
+        return new LocationReportResponse(1L, LocalDate.of(2024, 6, 1), "Poland", "Gdansk");
     }
 
     // --- GET /api/ships/{shipId}/reports ---
@@ -54,7 +54,7 @@ class LocationReportControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].country").value("Poland"))
-                .andExpect(jsonPath("$[0].port").value("Gdańsk"));
+                .andExpect(jsonPath("$[0].port").value("Gdansk"));
     }
 
     @Test
@@ -73,7 +73,7 @@ class LocationReportControllerTest {
     @WithMockUser
     void create_valid() throws Exception {
         LocationReportRequest request = new LocationReportRequest(
-                LocalDate.of(2024, 6, 1), "Poland", "Gdańsk");
+                LocalDate.of(2024, 6, 1), "Poland", "Gdansk");
         when(locationReportService.create(eq(1L), any(LocationReportRequest.class)))
                 .thenReturn(buildResponse());
 
@@ -84,7 +84,7 @@ class LocationReportControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.country").value("Poland"))
-                .andExpect(jsonPath("$.port").value("Gdańsk"));
+                .andExpect(jsonPath("$.port").value("Gdansk"));
     }
 
     @Test
@@ -104,7 +104,7 @@ class LocationReportControllerTest {
     @WithMockUser
     void create_shipNotFound() throws Exception {
         LocationReportRequest request = new LocationReportRequest(
-                LocalDate.of(2024, 6, 1), "Poland", "Gdańsk");
+                LocalDate.of(2024, 6, 1), "Poland", "Gdansk");
         when(locationReportService.create(eq(99L), any(LocationReportRequest.class)))
                 .thenThrow(new ResourceNotFoundException("Ship not found: 99"));
 
