@@ -1,4 +1,5 @@
 import { APP_INITIALIZER, ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { lastValueFrom } from 'rxjs';
 import { provideRouter, withEnabledBlockingInitialNavigation } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideNativeDateAdapter } from '@angular/material/core';
@@ -18,7 +19,7 @@ export const appConfig: ApplicationConfig = {
     { provide: MAT_DATE_LOCALE, useValue: 'en-US' },
     {
       provide: APP_INITIALIZER,
-      useFactory: (auth: AuthService) => () => auth.checkSession(),
+      useFactory: (auth: AuthService) => () => lastValueFrom(auth.checkSession()),
       deps: [AuthService],
       multi: true
     }
