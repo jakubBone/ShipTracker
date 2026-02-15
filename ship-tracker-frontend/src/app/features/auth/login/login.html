@@ -2,24 +2,24 @@
   <mat-card class="login-card">
     <mat-card-header>
       <mat-card-title>Ship Tracker</mat-card-title>
-      <mat-card-subtitle>Zaloguj się do systemu</mat-card-subtitle>
+      <mat-card-subtitle>Log in to the system</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
       <form [formGroup]="form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Login</mat-label>
+          <mat-label>Username</mat-label>
           <input matInput formControlName="username" autocomplete="username" />
           @if (form.controls.username.invalid && form.controls.username.touched) {
-            <mat-error>Pole wymagane</mat-error>
+            <mat-error>This field is required</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Hasło</mat-label>
+          <mat-label>Password</mat-label>
           <input matInput type="password" formControlName="password" autocomplete="current-password" />
           @if (form.controls.password.invalid && form.controls.password.touched) {
-            <mat-error>Pole wymagane</mat-error>
+            <mat-error>This field is required</mat-error>
           }
         </mat-form-field>
 
@@ -28,7 +28,7 @@
         }
 
         <button mat-raised-button color="primary" type="submit" class="full-width" [disabled]="isLoading()">
-          {{ isLoading() ? 'Logowanie...' : 'Zaloguj się' }}
+          {{ isLoading() ? 'Signing in...' : 'Sign in' }}
         </button>
       </form>
     </mat-card-content>

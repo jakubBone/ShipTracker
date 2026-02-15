@@ -41,7 +41,7 @@ export class Login {
     this.auth.login(username, password).subscribe({
       next: () => this.router.navigate(['/ships']),
       error: () => {
-        this.errorMessage.set('Nieprawidłowe dane logowania');
+        this.errorMessage.set('Invalid credentials');
         this.isLoading.set(false);
       }
     });

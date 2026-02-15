@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { ShipService } from '../../../core/services/ship.service';
 
-const SHIP_TYPES = ['Frachtowiec', 'Tankowiec', 'Kontenerowiec', 'Masowiec'];
+const SHIP_TYPES = ['Cargo Ship', 'Tanker', 'Container Ship', 'Bulk Carrier'];
 
 @Component({
   selector: 'app-ship-form',
@@ -69,7 +69,7 @@ export class ShipForm implements OnInit {
     this.nameError.set('');
     this.shipService.generateName().subscribe({
       next: ({ name }) => this.form.patchValue({ name }),
-      error: () => this.nameError.set('Nie udało się pobrać nazwy. Spróbuj ponownie.')
+      error: () => this.nameError.set('Failed to fetch name. Please try again.')
     });
   }
 

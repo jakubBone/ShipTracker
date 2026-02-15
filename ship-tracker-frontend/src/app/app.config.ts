@@ -3,14 +3,10 @@ import { provideRouter, withEnabledBlockingInitialNavigation } from '@angular/ro
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
-import { registerLocaleData } from '@angular/common';
-import localePl from '@angular/common/locales/pl';
 import { routes } from './app.routes';
 import { credentialsInterceptor } from './core/interceptors/credentials.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { AuthService } from './core/services/auth.service';
-
-registerLocaleData(localePl);
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,8 +14,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withEnabledBlockingInitialNavigation()),
     provideHttpClient(withInterceptors([credentialsInterceptor, errorInterceptor])),
     provideNativeDateAdapter(),
-    { provide: LOCALE_ID, useValue: 'pl' },
-    { provide: MAT_DATE_LOCALE, useValue: 'pl' },
+    { provide: LOCALE_ID, useValue: 'en-US' },
+    { provide: MAT_DATE_LOCALE, useValue: 'en-US' },
     {
       provide: APP_INITIALIZER,
       useFactory: (auth: AuthService) => () => auth.checkSession(),

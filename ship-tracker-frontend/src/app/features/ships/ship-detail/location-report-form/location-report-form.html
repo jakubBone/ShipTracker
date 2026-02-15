@@ -1,37 +1,37 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="report-form">
 
   <mat-form-field appearance="outline">
-    <mat-label>Data raportu</mat-label>
-    <input matInput [matDatepicker]="reportDatePicker" formControlName="reportDate" placeholder="DD.MM.RRRR">
+    <mat-label>Report Date</mat-label>
+    <input matInput [matDatepicker]="reportDatePicker" formControlName="reportDate" placeholder="MM/DD/YYYY">
     <mat-datepicker-toggle matIconSuffix [for]="reportDatePicker" />
     <mat-datepicker #reportDatePicker />
     @if (form.controls.reportDate.invalid && form.controls.reportDate.touched) {
-      <mat-error>Pole wymagane</mat-error>
+      <mat-error>This field is required</mat-error>
     }
   </mat-form-field>
 
   <mat-form-field appearance="outline">
-    <mat-label>Kraj</mat-label>
+    <mat-label>Country</mat-label>
     <mat-select formControlName="country">
       @for (country of countries; track country) {
         <mat-option [value]="country">{{ country }}</mat-option>
       }
     </mat-select>
     @if (form.controls.country.invalid && form.controls.country.touched) {
-      <mat-error>Pole wymagane</mat-error>
+      <mat-error>This field is required</mat-error>
     }
   </mat-form-field>
 
   <mat-form-field appearance="outline">
     <mat-label>Port</mat-label>
-    <input matInput formControlName="port" placeholder="np. Gdańsk">
+    <input matInput formControlName="port" placeholder="e.g. Rotterdam">
     @if (form.controls.port.invalid && form.controls.port.touched) {
-      <mat-error>Pole wymagane</mat-error>
+      <mat-error>This field is required</mat-error>
     }
   </mat-form-field>
 
   <button type="submit" mat-raised-button color="primary" [disabled]="form.invalid || isLoading()">
-    Dodaj wpis
+    Add Entry
   </button>
 
 </form>
