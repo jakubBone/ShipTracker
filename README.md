@@ -68,13 +68,14 @@ Backend is my stronger side. Frontend is an area I'm currently developing.
 This project was a challenge to step outside my comfort zone.
 I used `Claude Code (Sonnet 4.5)` to speed up development while actively reviewing and controlling its output.
 
-| Step | What happened                                                                                                                                                                                                                                |
-|------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Step | What happened                                                                                                                                                                                                                                                           |
+|------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 📋 **Spec first** | I wrote the requirements: scope, business rules, edge cases, acceptance criteria. I had it reviewed by two models (`Claude Opus 4.6` + `Gemini 3 Deep Think`), evaluated both responses, merged the insights, and updated the spec myself. That became `spec/Brief.md`. |
-| 📌 **Implementation plan** | I drafted `spec/Plan_Implementacji.md` with Claude and reviewed it with Gemini, then finalised: staged plan, definition of done per stage, test coverage requirements in `spec/Plan_Testow_Backend.md`.                                 |
-| 👨‍💻 **Pair programming** | I used `Claude Code` to implement large parts of the code. I read and reviewed every generated file before moving on - that's how I caught missing test cases in the first backend pass and fixed them.                                        |
-| 📝 **Living spec** | When better approaches came up during development, even if they differed from the plan, I updated the spec accordingly.                                                                                                                      |
-| 📚 **Learn, don't delegate** | When I didn't fully understand something, I asked for explanations and examples, and saved the reasoning locally as learning notes, so I'd actually learn it.                                                                                |
+| 📌 **Implementation plan** | I drafted `spec/Plan_Implementacji.md` with Claude and reviewed it with Gemini, then finalised: staged plan, definition of done per stage, test coverage requirements in `spec/Plan_Testow_Backend.md`.                                                                 |
+| 👨‍💻 **Pair programming** | I used `Claude Code` to implement large parts of the code. I read and reviewed every generated file before moving on - that's how I caught missing test cases in the first backend pass and fixed them.                                                                 |
+| 📝 **Living spec** | When better approaches came up during development, even if they differed from the plan, I updated the spec accordingly.                                                                                                                                                 |
+| 📖 **API docs** | I prepared `OpenAPI/Swagger` documentation with Claude Code using `springdoc-openapi`. Annotated all controllers and DTOs, configured session-based auth scheme.                                                                                                        |
+| 📚 **Learn, don't delegate** | When I didn't fully understand something, I asked `AI` for explanations and examples, and saved the reasoning locally as learning notes, so I'd actually learn it.                                                                                                        |
 
 ---
 
