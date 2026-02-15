@@ -40,6 +40,8 @@ docker compose up
 
 Open **http://localhost:4200** - login: `admin` / `admin123`
 
+API docs (Swagger UI): **http://localhost:8080/swagger-ui.html**
+
 ---
 
 ## 🛠 Tech Stack
