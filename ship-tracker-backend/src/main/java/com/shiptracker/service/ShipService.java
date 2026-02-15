@@ -5,6 +5,7 @@ import com.shiptracker.dto.ShipResponse;
 import com.shiptracker.entity.Ship;
 import com.shiptracker.exception.ResourceNotFoundException;
 import com.shiptracker.repository.ShipRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +22,7 @@ public class ShipService {
     }
 
     public List<ShipResponse> findAll() {
-        return shipRepository.findAll().stream()
+        return shipRepository.findAll(Sort.by("name")).stream()
                 .map(this::toResponse)
                 .toList();
     }
