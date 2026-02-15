@@ -10,7 +10,7 @@
 [![Claude](https://img.shields.io/badge/Claude-Sonnet%204.5-7c3aed.svg)](https://claude.ai)
 [![Gemini](https://img.shields.io/badge/Gemini-3%20Deep%20Think-4285F4.svg)](https://gemini.google.com)
 
-A web application for managing ships and reporting their voyages.
+A web application for managing ships and their location reports.
 
 ## ✨ Features
 
