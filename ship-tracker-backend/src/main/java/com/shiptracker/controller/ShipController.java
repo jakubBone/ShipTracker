@@ -4,6 +4,9 @@ import com.shiptracker.dto.ShipRequest;
 import com.shiptracker.dto.ShipResponse;
 import com.shiptracker.service.NameGeneratorService;
 import com.shiptracker.service.ShipService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+@Tag(name = "Ships")
 @RestController
 @RequestMapping("/api/ships")
 public class ShipController {
@@ -24,26 +28,41 @@ public class ShipController {
         this.nameGeneratorService = nameGeneratorService;
     }
 
+    @Operation(summary = "Get all ships")
+    @ApiResponse(responseCode = "200", description = "List of ships")
     @GetMapping
     public List<ShipResponse> getAll() {
         return shipService.findAll();
     }
 
+    @Operation(summary = "Get ship by ID")
+    @ApiResponse(responseCode = "200", description = "Ship found")
+    @ApiResponse(responseCode = "404", description = "Ship not found")
     @GetMapping("/{id}")
     public ShipResponse getById(@PathVariable Long id) {
         return shipService.findById(id);
     }
 
+    @Operation(summary = "Create a new ship")
+    @ApiResponse(responseCode = "201", description = "Ship created")
+    @ApiResponse(responseCode = "400", description = "Validation error")
     @PostMapping
     public ResponseEntity<ShipResponse> create(@Valid @RequestBody ShipRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(shipService.create(request));
     }
 
+    @Operation(summary = "Update ship")
+    @ApiResponse(responseCode = "200", description = "Ship updated")
+    @ApiResponse(responseCode = "404", description = "Ship not found")
+    @ApiResponse(responseCode = "400", description = "Validation error")
     @PutMapping("/{id}")
     public ShipResponse update(@PathVariable Long id, @Valid @RequestBody ShipRequest request) {
         return shipService.update(id, request);
     }
 
+    @Operation(summary = "Generate a random ship name")
+    @ApiResponse(responseCode = "200", description = "Generated name")
+    @ApiResponse(responseCode = "503", description = "External API unavailable")
     @GetMapping("/generate-name")
     public Map<String, String> generateName() {
         return Map.of("name", nameGeneratorService.generateName());
