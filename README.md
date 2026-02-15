@@ -56,6 +56,8 @@ Open **http://localhost:4200** - login: `admin` / `admin123`
 ## 🤖 Development Approach
 
 > Built with [Claude Code](https://claude.ai/code): AI-assisted pair programming, spec-first workflow
+> 
+> Note: The planning docs in `spec/` are in Polish, which was the working language for this project.
 
 Backend is my stronger side. Frontend is an area I'm currently developing.
 
@@ -65,7 +67,7 @@ I used Claude Code (Sonnet 4.5) to speed up development while actively reviewing
 | Step | What happened                                                                                                                                                                                                                                 |
 |------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 📋 **Spec first** | I wrote the requirements: scope, business rules, edge cases, acceptance criteria. I had it reviewed by two models (Claude + Gemini), evaluated both responses, merged the insights, and updated the spec myself. That became `spec/Brief.md`. |
-| 📌 **Implementation plan** | I turned the brief into `spec/Plan_Implementacji.md` - reviewed with models again, then finalised: staged plan, definition of done per stage, test coverage requirements in `spec/Plan_Testow_Backend.md`.                                    |
+| 📌 **Implementation plan** | I drafted `spec/Plan_Implementacji.md` with Claude Code and reviewed it with Gemini, then finalised: staged plan, definition of done per stage, test coverage requirements in `spec/Plan_Testow_Backend.md`.                                 |
 | 👨‍💻 **Pair programming** | I used Claude Code to implement large parts of the code. I read and reviewed every generated file before moving on - that's how I caught missing test cases in the first backend pass and fixed them.                                         |
 | 📝 **Living spec** | When better approaches came up during development, even if they differed from the plan, I updated the spec accordingly.                                                                                                                       |
 | 📚 **Learn, don't delegate** | When I didn't fully understand something, I asked for explanations and examples, and saved the reasoning locally as learning notes, so I'd actually learn it.                                                                                 |
