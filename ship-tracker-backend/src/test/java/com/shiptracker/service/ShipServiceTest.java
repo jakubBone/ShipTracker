@@ -13,6 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.springframework.data.domain.Sort;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -53,7 +55,7 @@ class ShipServiceTest {
 
     @Test
     void findAll_whenEmpty() {
-        when(shipRepository.findAll()).thenReturn(List.of());
+        when(shipRepository.findAll(any(Sort.class))).thenReturn(List.of());
 
         List<ShipResponse> result = shipService.findAll();
 
@@ -63,7 +65,7 @@ class ShipServiceTest {
     @Test
     void findAll_whenShipsExist() {
         Ship ship = buildShip(1L, "Atlantic", 3);
-        when(shipRepository.findAll()).thenReturn(List.of(ship));
+        when(shipRepository.findAll(any(Sort.class))).thenReturn(List.of(ship));
 
         List<ShipResponse> result = shipService.findAll();
 
