@@ -44,6 +44,17 @@ API docs (Swagger UI): **http://localhost:8080/swagger-ui.html**
 
 ---
 
+## 🧪 Running Tests
+
+```bash
+cd ship-tracker-backend
+./mvnw test
+```
+
+40 tests across three layers: unit (services / Mockito), controller (MockMvc), and repository (H2 in-memory — `LocationReportRepository` has only one custom query `findByShipIdOrderByReportDateAsc`, so TestContainers overhead isn't justified).
+
+---
+
 ## 🛠 Tech Stack
 
 | Layer | Technology |
