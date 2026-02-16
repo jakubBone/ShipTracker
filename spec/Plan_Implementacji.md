@@ -193,6 +193,12 @@ public record LocationReportResponse(
 
 **1.7 Stwórz serwisy (Service)**
 
+`AuthService`:
+- `login(String username, String password, HttpSession session)` — autentykacja przez `AuthenticationManager`, ustawienie `SecurityContextHolder`, zapis sesji
+- `logout(HttpSession session, HttpServletResponse response)` — unieważnienie sesji, czyszczenie kontekstu, usunięcie ciasteczka
+
+Wydzielony z `AuthController` — kontroler odpowiada tylko za HTTP, logika sesji należy do serwisu (SRP).
+
 `ShipService`:
 - `findAll()` → `List<ShipResponse>`
 - `findById(Long id)` → `ShipResponse` (rzuca ResourceNotFoundException jeśli brak)
@@ -215,11 +221,12 @@ GET  /api/ships              → ShipController.getAll()             → 200 Lis
 POST /api/ships              → ShipController.create(...)          → 201 ShipResponse
 GET  /api/ships/{id}         → ShipController.getById()            → 200 ShipResponse
 PUT  /api/ships/{id}         → ShipController.update(...)          → 200 ShipResponse
-GET  /api/ships/generate-name → ShipController.generateName()      → 200 { "name": "..." }
+GET  /api/ships/generate-name → ShipController.generateName()      → 200 GeneratedNameResponse
 GET  /api/ships/{id}/reports → LocationReportController.getByShip() → 200 List<LocationReportResponse>
 POST /api/ships/{id}/reports → LocationReportController.create(...) → 201 LocationReportResponse
-POST /api/auth/login         → AuthController.login()              → 200 { "message": "Logged in successfully" }
-POST /api/auth/logout        → AuthController.logout(HttpSession)  → 200 { "message": "Logged out successfully" }
+POST /api/auth/login         → AuthController.login()              → 200 LoginResponse
+POST /api/auth/logout        → AuthController.logout(HttpSession)  → 200 LoginResponse
+GET  /api/auth/me            → AuthController.me()                 → 200 UserResponse
 ```
 
 **1.9 Skonfiguruj Spring Security**

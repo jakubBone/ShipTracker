@@ -113,22 +113,27 @@ springdoc automatycznie wykrywa endpointy i generuje spec.
 
 getAll()       → @Operation("Get all ships")
                  @ApiResponse(200, "List of ships")
+                 @ApiResponse(401, "Not authenticated")
 
 getById()      → @Operation("Get ship by ID")
                  @ApiResponse(200, "Ship found")
+                 @ApiResponse(401, "Not authenticated")
                  @ApiResponse(404, "Ship not found")
 
 create()       → @Operation("Create a new ship")
                  @ApiResponse(201, "Ship created")
                  @ApiResponse(400, "Validation error")
+                 @ApiResponse(401, "Not authenticated")
 
 update()       → @Operation("Update ship")
                  @ApiResponse(200, "Ship updated")
-                 @ApiResponse(404, "Ship not found")
                  @ApiResponse(400, "Validation error")
+                 @ApiResponse(401, "Not authenticated")
+                 @ApiResponse(404, "Ship not found")
 
 generateName() → @Operation("Generate a random ship name")
                  @ApiResponse(200, "Generated name")
+                 @ApiResponse(401, "Not authenticated")
                  @ApiResponse(503, "External API unavailable")
 ```
 
@@ -139,11 +144,13 @@ generateName() → @Operation("Generate a random ship name")
 
 getByShip() → @Operation("Get location reports for a ship")
                @ApiResponse(200, "List of reports")
+               @ApiResponse(401, "Not authenticated")
                @ApiResponse(404, "Ship not found")
 
 create()    → @Operation("Add a location report for a ship")
                @ApiResponse(201, "Report created")
                @ApiResponse(400, "Validation error")
+               @ApiResponse(401, "Not authenticated")
                @ApiResponse(404, "Ship not found")
 ```
 

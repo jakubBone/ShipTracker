@@ -145,12 +145,14 @@ Operator floty / dyspozytor w firmie zajmującej się transportem morskim:
 src/main/java/com/shiptracker/
 ├── config/
 │   ├── SecurityConfig.java          # CORS, session, CSRF, AuthenticationManager, UserDetailsService
-│   └── AppConfig.java               # Bean RestClient (HTTP client dla NameGeneratorService)
+│   ├── AppConfig.java               # Bean RestClient (HTTP client dla NameGeneratorService)
+│   └── OpenApiConfig.java           # Swagger/OpenAPI — tytuł, wersja, schemat sesji cookie
 ├── controller/
 │   ├── AuthController.java
 │   ├── ShipController.java
 │   └── LocationReportController.java
 ├── service/
+│   ├── AuthService.java             # Logika logowania i wylogowania (SRP)
 │   ├── ShipService.java
 │   ├── LocationReportService.java
 │   └── NameGeneratorService.java
@@ -164,6 +166,9 @@ src/main/java/com/shiptracker/
 │   └── LocationReport.java
 ├── dto/
 │   ├── LoginRequest.java            # record
+│   ├── LoginResponse.java           # record
+│   ├── UserResponse.java            # record
+│   ├── GeneratedNameResponse.java   # record
 │   ├── ShipRequest.java             # record
 │   ├── ShipResponse.java            # record
 │   ├── LocationReportRequest.java   # record

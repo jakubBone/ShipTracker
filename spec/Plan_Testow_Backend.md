@@ -56,7 +56,7 @@ MockMvc symuluje żądania HTTP bez uruchamiania prawdziwego serwera:
 
 **Uwaga dot. SecurityConfig:** `@WebMvcTest` ładuje też `SecurityConfig`, który potrzebuje `UserRepository` do zbudowania `UserDetailsService`. W każdej klasie testowej kontrolera wymagany jest `@MockBean UserRepository`. Zalogowanego użytkownika symuluje `@WithMockUser`.
 
-### ShipControllerTest — 13 przypadków
+### ShipControllerTest — 14 przypadków
 
 | Test | HTTP | Co sprawdza |
 |---|---|---|
@@ -77,7 +77,7 @@ MockMvc symuluje żądania HTTP bez uruchamiania prawdziwego serwera:
 
 ### AuthControllerTest — 4 przypadki
 
-Używa `@MockBean AuthenticationManager` do kontrolowania zachowania logowania.
+Używa `@SpringBootTest` (pełny kontekst) + `@MockitoBean UserRepository`. Logika auth delegowana do `AuthService`, który jest ładowany automatycznie.
 
 | Test | Co sprawdza |
 |---|---|
@@ -134,7 +134,8 @@ Testujemy wyłącznie niestandardowe zapytania (standardowe metody JPA nie wymag
 | `LocationReportServiceTest` | Unit / Mockito | 4 |
 | `NameGeneratorServiceTest` | Unit / Mockito | 3 |
 | `AuthControllerTest` | Web slice / MockMvc | 4 |
-| `ShipControllerTest` | Web slice / MockMvc | 13 |
+| `ShipControllerTest` | Web slice / MockMvc | 14 |
 | `LocationReportControllerTest` | Web slice / MockMvc | 5 |
 | `LocationReportRepositoryTest` | JPA slice / H2 | 2 |
-| **Łącznie** | | **~38** |
+| `ShipTrackerBackendApplicationTests` | Integration / Spring context | 1 |
+| **Łącznie** | | **40** |
