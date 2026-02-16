@@ -3,19 +3,15 @@ package com.shiptracker.controller;
 import com.shiptracker.dto.LoginRequest;
 import com.shiptracker.dto.LoginResponse;
 import com.shiptracker.dto.UserResponse;
+import com.shiptracker.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,10 +25,10 @@ import java.security.Principal;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
+    private final AuthService authService;
 
-    public AuthController(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @Operation(summary = "Login and start session")
@@ -44,11 +40,7 @@ public class AuthController {
     public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest request,
             HttpSession session) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.username(), request.password())
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+        authService.login(request.username(), request.password(), session);
         return ResponseEntity.ok(new LoginResponse("Logged in successfully"));
     }
 
@@ -57,12 +49,7 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "Logged out successfully")
     @PostMapping("/logout")
     public ResponseEntity<LoginResponse> logout(HttpSession session, HttpServletResponse response) {
-        session.invalidate();
-        SecurityContextHolder.clearContext();
-        Cookie cookie = new Cookie("JSESSIONID", null);
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
+        authService.logout(session, response);
         return ResponseEntity.ok(new LoginResponse("Logged out successfully"));
     }
 
