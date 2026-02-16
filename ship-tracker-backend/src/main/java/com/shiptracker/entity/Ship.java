@@ -42,5 +42,4 @@ public class Ship {
     public void setLaunchDate(LocalDate launchDate) { this.launchDate = launchDate; }
     public void setShipType(String shipType) { this.shipType = shipType; }
     public void setTonnage(BigDecimal tonnage) { this.tonnage = tonnage; }
-    public void setLocationReports(List<LocationReport> locationReports) { this.locationReports = locationReports; }
 }
