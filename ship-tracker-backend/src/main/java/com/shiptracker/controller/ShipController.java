@@ -36,6 +36,7 @@ public class ShipController {
 
     @Operation(summary = "Get all ships")
     @ApiResponse(responseCode = "200", description = "List of ships")
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
     @GetMapping
     public List<ShipResponse> getAll() {
         return shipService.findAll();
@@ -43,6 +44,7 @@ public class ShipController {
 
     @Operation(summary = "Get ship by ID")
     @ApiResponse(responseCode = "200", description = "Ship found")
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
     @ApiResponse(responseCode = "404", description = "Ship not found")
     @GetMapping("/{id}")
     public ShipResponse getById(@PathVariable Long id) {
@@ -52,6 +54,7 @@ public class ShipController {
     @Operation(summary = "Create a new ship")
     @ApiResponse(responseCode = "201", description = "Ship created")
     @ApiResponse(responseCode = "400", description = "Validation error")
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
     @PostMapping
     public ResponseEntity<ShipResponse> create(@Valid @RequestBody ShipRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(shipService.create(request));
@@ -59,8 +62,9 @@ public class ShipController {
 
     @Operation(summary = "Update ship")
     @ApiResponse(responseCode = "200", description = "Ship updated")
-    @ApiResponse(responseCode = "404", description = "Ship not found")
     @ApiResponse(responseCode = "400", description = "Validation error")
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
+    @ApiResponse(responseCode = "404", description = "Ship not found")
     @PutMapping("/{id}")
     public ShipResponse update(@PathVariable Long id, @Valid @RequestBody ShipRequest request) {
         return shipService.update(id, request);
@@ -68,6 +72,7 @@ public class ShipController {
 
     @Operation(summary = "Generate a random ship name")
     @ApiResponse(responseCode = "200", description = "Generated name")
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
     @ApiResponse(responseCode = "503", description = "External API unavailable")
     @GetMapping("/generate-name")
     public GeneratedNameResponse generateName() {

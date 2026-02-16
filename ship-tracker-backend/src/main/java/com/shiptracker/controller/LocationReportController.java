@@ -31,6 +31,7 @@ public class LocationReportController {
 
     @Operation(summary = "Get location reports for a ship")
     @ApiResponse(responseCode = "200", description = "List of reports")
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
     @ApiResponse(responseCode = "404", description = "Ship not found")
     @GetMapping
     public List<LocationReportResponse> getByShip(@PathVariable Long shipId) {
@@ -40,6 +41,7 @@ public class LocationReportController {
     @Operation(summary = "Add a location report for a ship")
     @ApiResponse(responseCode = "201", description = "Report created")
     @ApiResponse(responseCode = "400", description = "Validation error")
+    @ApiResponse(responseCode = "401", description = "Not authenticated")
     @ApiResponse(responseCode = "404", description = "Ship not found")
     @PostMapping
     public ResponseEntity<LocationReportResponse> create(
