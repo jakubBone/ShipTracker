@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class LocationReportService {
 
     private final LocationReportRepository locationReportRepository;
@@ -34,6 +34,7 @@ public class LocationReportService {
                 .toList();
     }
 
+    @Transactional
     public LocationReportResponse create(Long shipId, LocationReportRequest dto) {
         Ship ship = shipRepository.findById(shipId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ship not found with id: " + shipId));

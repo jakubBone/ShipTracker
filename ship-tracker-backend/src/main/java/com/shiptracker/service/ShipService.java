@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class ShipService {
 
     private final ShipRepository shipRepository;
@@ -33,6 +33,7 @@ public class ShipService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ship not found with id: " + id));
     }
 
+    @Transactional
     public ShipResponse create(ShipRequest dto) {
         Ship ship = new Ship();
         ship.setName(dto.name());
@@ -42,6 +43,7 @@ public class ShipService {
         return toResponse(shipRepository.save(ship));
     }
 
+    @Transactional
     public ShipResponse update(Long id, ShipRequest dto) {
         Ship ship = shipRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ship not found with id: " + id));
