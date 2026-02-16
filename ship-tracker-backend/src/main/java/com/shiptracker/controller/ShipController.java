@@ -1,5 +1,6 @@
 package com.shiptracker.controller;
 
+import com.shiptracker.dto.GeneratedNameResponse;
 import com.shiptracker.dto.ShipRequest;
 import com.shiptracker.dto.ShipResponse;
 import com.shiptracker.service.NameGeneratorService;
@@ -19,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 @Tag(name = "Ships")
 @RestController
@@ -70,7 +70,7 @@ public class ShipController {
     @ApiResponse(responseCode = "200", description = "Generated name")
     @ApiResponse(responseCode = "503", description = "External API unavailable")
     @GetMapping("/generate-name")
-    public Map<String, String> generateName() {
-        return Map.of("name", nameGeneratorService.generateName());
+    public GeneratedNameResponse generateName() {
+        return new GeneratedNameResponse(nameGeneratorService.generateName());
     }
 }

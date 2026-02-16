@@ -1,6 +1,8 @@
 package com.shiptracker.controller;
 
 import com.shiptracker.dto.LoginRequest;
+import com.shiptracker.dto.LoginResponse;
+import com.shiptracker.dto.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -22,8 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
 
-import java.util.Map;
-
 @Tag(name = "Authentication")
 @RestController
 @RequestMapping("/api/auth")
@@ -41,7 +41,7 @@ public class AuthController {
     @ApiResponse(responseCode = "400", description = "Blank username or password")
     @ApiResponse(responseCode = "401", description = "Invalid credentials")
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(
+    public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest request,
             HttpSession session) {
         Authentication authentication = authenticationManager.authenticate(
@@ -49,28 +49,28 @@ public class AuthController {
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
         session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
-        return ResponseEntity.ok(Map.of("message", "Logged in successfully"));
+        return ResponseEntity.ok(new LoginResponse("Logged in successfully"));
     }
 
     @Operation(summary = "Logout and invalidate session")
     @SecurityRequirements({})
     @ApiResponse(responseCode = "200", description = "Logged out successfully")
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logout(HttpSession session, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> logout(HttpSession session, HttpServletResponse response) {
         session.invalidate();
         SecurityContextHolder.clearContext();
         Cookie cookie = new Cookie("JSESSIONID", null);
         cookie.setMaxAge(0);
         cookie.setPath("/");
         response.addCookie(cookie);
-        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+        return ResponseEntity.ok(new LoginResponse("Logged out successfully"));
     }
 
     @Operation(summary = "Get currently logged-in username")
     @ApiResponse(responseCode = "200", description = "Username of authenticated user")
     @ApiResponse(responseCode = "401", description = "Not authenticated")
     @GetMapping("/me")
-    public ResponseEntity<Map<String, String>> me(Principal principal) {
-        return ResponseEntity.ok(Map.of("username", principal.getName()));
+    public ResponseEntity<UserResponse> me(Principal principal) {
+        return ResponseEntity.ok(new UserResponse(principal.getName()));
     }
 }
