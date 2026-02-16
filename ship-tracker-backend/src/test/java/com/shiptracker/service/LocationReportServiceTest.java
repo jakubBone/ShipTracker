@@ -13,6 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.test.util.ReflectionTestUtils;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -37,7 +39,7 @@ class LocationReportServiceTest {
 
     private Ship buildShip(Long id) {
         Ship ship = new Ship();
-        ship.setId(id);
+        ReflectionTestUtils.setField(ship, "id", id);
         ship.setName("Atlantic");
         ship.setLaunchDate(LocalDate.of(2000, 1, 1));
         ship.setShipType("Cargo");
@@ -47,7 +49,7 @@ class LocationReportServiceTest {
 
     private LocationReport buildReport(Long id, LocalDate date) {
         LocationReport report = new LocationReport();
-        report.setId(id);
+        ReflectionTestUtils.setField(report, "id", id);
         report.setReportDate(date);
         report.setCountry("Poland");
         report.setPort("Gdansk");

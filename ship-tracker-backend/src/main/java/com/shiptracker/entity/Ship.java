@@ -38,7 +38,6 @@ public class Ship {
     public BigDecimal getTonnage() { return tonnage; }
     public List<LocationReport> getLocationReports() { return locationReports; }
 
-    public void setId(Long id) { this.id = id; }
     public void setName(String name) { this.name = name; }
     public void setLaunchDate(LocalDate launchDate) { this.launchDate = launchDate; }
     public void setShipType(String shipType) { this.shipType = shipType; }

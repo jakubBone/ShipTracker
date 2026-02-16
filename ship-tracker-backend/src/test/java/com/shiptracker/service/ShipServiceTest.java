@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +35,7 @@ class ShipServiceTest {
 
     private Ship buildShip(Long id, String name, int reportCount) {
         Ship ship = new Ship();
-        ship.setId(id);
+        ReflectionTestUtils.setField(ship, "id", id);
         ship.setName(name);
         ship.setLaunchDate(LocalDate.of(2000, 1, 1));
         ship.setShipType("Cargo");

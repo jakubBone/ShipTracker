@@ -32,7 +32,6 @@ public class LocationReport {
     public String getCountry() { return country; }
     public String getPort() { return port; }
 
-    public void setId(Long id) { this.id = id; }
     public void setShip(Ship ship) { this.ship = ship; }
     public void setReportDate(LocalDate reportDate) { this.reportDate = reportDate; }
     public void setCountry(String country) { this.country = country; }
