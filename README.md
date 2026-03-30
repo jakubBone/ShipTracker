@@ -86,7 +86,7 @@ I used `Claude Code (Sonnet 4.5)` to speed up development while actively reviewi
 | 👨‍💻 **Pair programming** | I used `Claude Code` to implement large parts of the code. I read and reviewed every generated file before moving on - that's how I caught missing test cases in the first backend pass and fixed them.                                                                 |
 | 📝 **Living spec** | When better approaches came up during development, even if they differed from the plan, I updated the spec accordingly.                                                                                                                                                 |
 | 📖 **API docs** | I prepared `OpenAPI/Swagger` documentation with Claude Code using `springdoc-openapi`. Annotated all controllers and DTOs, configured session-based auth scheme.                                                                                                        |
-| 📚 **Learn, don't delegate** | When I didn't fully understand something, I asked `AI` for explanations and examples, and saved the reasoning locally as learning notes, so I'd actually learn it.                                                                                                        |
+| 📚 **Learn, don't delegate** | When I didn't fully understand something, I asked `Claude Code` for explanations and examples, and saved the reasoning locally as learning notes, so I'd actually learn it.                                                                                             |
 
 ---
 
