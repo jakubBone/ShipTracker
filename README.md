@@ -79,12 +79,25 @@ I used `Claude Code (Sonnet 4.5)` to speed up development while actively reviewi
 
 | Step | What happened                                                                                                                                                                                                                                                           |
 |------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 📋 **Spec first** | I wrote the requirements: scope, business rules, edge cases, acceptance criteria. I had it reviewed by two models (`Claude Opus 4.6` + `Gemini 3 Deep Think`), evaluated both responses, merged the insights, and updated the spec myself. That became `spec/Brief.md`. |
-| 📌 **Implementation plan** | I drafted `spec/Plan_Implementacji.md` with Claude and reviewed it with Gemini, then finalised: staged plan, definition of done per stage, test coverage requirements in `spec/Plan_Testow_Backend.md`.                                                                 |
+| 📋 **Spec first** | I wrote the requirements: scope, business rules, edge cases, acceptance criteria. I had it reviewed by two models (`Claude Opus 4.6` + `Gemini 3 Deep Think`), evaluated both responses, merged the insights, and updated the spec myself. That became `spec/01-project-brief.md`. |
+| 📌 **Implementation plan** | I drafted `spec/02-implementation-plan.md` with Claude and reviewed it with Gemini, then finalised: staged plan, definition of done per stage, test coverage requirements in `spec/04-backend-testing-plan.md`.                                                                 |
 | 👨‍💻 **Pair programming** | I used `Claude Code` to implement large parts of the code. I read and reviewed every generated file before moving on - that's how I caught missing test cases in the first backend pass and fixed them.                                                                 |
 | 📝 **Living spec** | When better approaches came up during development, even if they differed from the plan, I updated the spec accordingly.                                                                                                                                                 |
 | 📖 **API docs** | I prepared `OpenAPI/Swagger` documentation with Claude Code using `springdoc-openapi`. Annotated all controllers and DTOs, configured session-based auth scheme.                                                                                                        |
 | 📚 **Learn, don't delegate** | When I didn't fully understand something, I asked `Claude Code` for explanations and examples, and saved the reasoning locally as learning notes, so I'd actually learn it.                                                                                             |
+
+---
+
+## 📋 Specification Files
+
+The `spec/` directory contains numbered planning documents — **read in order**:
+
+- **`01-project-brief.md`** — Requirements, scope, business rules, acceptance criteria
+- **`02-implementation-plan.md`** — Step-by-step implementation roadmap with stages and definitions of done
+- **`03-api-documentation-plan.md`** — REST API design and Swagger/OpenAPI setup strategy
+- **`04-backend-testing-plan.md`** — Testing strategy: unit tests, controller tests, integration tests
+
+Each document is self-contained but builds on the previous one. Start with `01-project-brief.md` to understand the full scope.
 
 ---
 
@@ -93,7 +106,7 @@ I used `Claude Code (Sonnet 4.5)` to speed up development while actively reviewi
 ```
 ship-tracker/
 ├── docker-compose.yml
-├── spec/                          # Planning docs (Brief, Implementation Plan, Test Plan)
+├── spec/                          # Planning docs (numbered 01-04, read in order)
 ├── ship-tracker-backend/
 │   └── src/main/java/com/shiptracker/
 │       ├── config/                # Security, app configuration
