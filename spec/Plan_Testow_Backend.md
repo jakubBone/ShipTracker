@@ -1,134 +1,134 @@
-# Plan Testów — Backend
+# Backend Test Plan
 
-## Trzy warstwy testów
+## Three Test Layers
 
 ```
-        [  Integracyjne  ]   ← mało, wolne, testują całość
-       [  Kontrolery (MVC) ]  ← MockMvc, testują HTTP layer
-      [  Unit (Serwisy)     ]  ← Mockito, szybkie, bez Springa
+        [  Integration   ]   ← few, slow, test the whole stack
+       [  Controllers (MVC) ]  ← MockMvc, test the HTTP layer
+      [  Unit (Services)    ]  ← Mockito, fast, no Spring context
 ```
 
 ---
 
-## Warstwa 1 — Testy jednostkowe serwisów
+## Layer 1 — Service Unit Tests
 
-### ShipServiceTest — 7 przypadków
+### ShipServiceTest — 7 cases
 
-| Test | Co sprawdza |
+| Test | What it verifies |
 |---|---|
-| `findAll_whenEmpty` | pusta lista z repo → serwis zwraca `[]` |
-| `findAll_whenShipsExist` | mapowanie `Ship` → `ShipResponse` (pola, reportCount) |
-| `findById_found` | szczęśliwa ścieżka — poprawny `ShipResponse` |
-| `findById_notFound` | `Optional.empty()` → rzuca `ResourceNotFoundException` |
-| `create` | zapisuje encję, zwraca zmapowany response |
-| `update_found` | aktualizuje pola, zapisuje, zwraca response |
-| `update_notFound` | rzuca `ResourceNotFoundException` |
+| `findAll_whenEmpty` | empty list from repo → service returns `[]` |
+| `findAll_whenShipsExist` | mapping `Ship` → `ShipResponse` (fields, reportCount) |
+| `findById_found` | happy path — correct `ShipResponse` |
+| `findById_notFound` | `Optional.empty()` → throws `ResourceNotFoundException` |
+| `create` | saves entity, returns mapped response |
+| `update_found` | updates fields, saves, returns response |
+| `update_notFound` | throws `ResourceNotFoundException` |
 
-### LocationReportServiceTest — 4 przypadki
+### LocationReportServiceTest — 4 cases
 
-| Test | Co sprawdza |
+| Test | What it verifies |
 |---|---|
 | `findByShipId_shipNotFound` | `existsById` = false → `ResourceNotFoundException` |
-| `findByShipId_found` | lista raportów posortowana wg daty |
-| `create_shipNotFound` | brak statku → wyjątek |
-| `create_success` | tworzy raport, przypisuje do statku |
+| `findByShipId_found` | list of reports sorted by date |
+| `create_shipNotFound` | ship not found → exception |
+| `create_success` | creates report, assigns to ship |
 
-### NameGeneratorServiceTest — 3 przypadki
+### NameGeneratorServiceTest — 3 cases
 
-Wymaga drobnego refactoru produkcyjnego (patrz sekcja poniżej).
+Requires a minor production refactor (see section below).
 
-| Test | Co sprawdza |
+| Test | What it verifies |
 |---|---|
-| `generateName_success` | API zwraca tablicę → serwis zwraca `names[0]` |
-| `generateName_emptyResponse` | API zwraca `[]` → `ExternalApiException` |
+| `generateName_success` | API returns an array → service returns `names[0]` |
+| `generateName_emptyResponse` | API returns `[]` → `ExternalApiException` |
 | `generateName_apiError` | `RestClientException` → `ExternalApiException` |
 
 ---
 
-## Warstwa 2 — Testy kontrolerów
+## Layer 2 — Controller Tests
 
-`@WebMvcTest` ładuje tylko warstwę HTTP — kontrolery, filtry, Spring Security. Nie ładuje JPA ani bazy. Serwisy mockujemy przez `@MockBean`.
+`@WebMvcTest` loads only the HTTP layer — controllers, filters, Spring Security. Does not load JPA or the database. Services are mocked via `@MockBean`.
 
-MockMvc symuluje żądania HTTP bez uruchamiania prawdziwego serwera:
-- `mockMvc.perform(get("/api/ships"))` — wysyła żądanie
-- `.andExpect(status().isOk())` — sprawdza status HTTP
-- `.andExpect(jsonPath("$.name").value("Atlantic"))` — sprawdza JSON
+MockMvc simulates HTTP requests without starting a real server:
+- `mockMvc.perform(get("/api/ships"))` — sends a request
+- `.andExpect(status().isOk())` — verifies the HTTP status
+- `.andExpect(jsonPath("$.name").value("Atlantic"))` — verifies JSON
 
-**Uwaga dot. SecurityConfig:** `@WebMvcTest` ładuje też `SecurityConfig`, który potrzebuje `UserRepository` do zbudowania `UserDetailsService`. W każdej klasie testowej kontrolera wymagany jest `@MockBean UserRepository`. Zalogowanego użytkownika symuluje `@WithMockUser`.
+**Note on SecurityConfig:** `@WebMvcTest` also loads `SecurityConfig`, which needs `UserRepository` to build `UserDetailsService`. Each controller test class requires `@MockBean UserRepository`. A logged-in user is simulated using `@WithMockUser`.
 
-### ShipControllerTest — 14 przypadków
+### ShipControllerTest — 14 cases
 
-| Test | HTTP | Co sprawdza |
+| Test | HTTP | What it verifies |
 |---|---|---|
-| `getAll_authenticated` | `GET /api/ships` | 200, lista JSON |
-| `getAll_unauthenticated` | `GET /api/ships` | 401 (brak sesji) |
-| `getById_found` | `GET /api/ships/1` | 200, poprawny obiekt |
+| `getAll_authenticated` | `GET /api/ships` | 200, JSON list |
+| `getAll_unauthenticated` | `GET /api/ships` | 401 (no session) |
+| `getById_found` | `GET /api/ships/1` | 200, correct object |
 | `getById_notFound` | `GET /api/ships/99` | 404 |
-| `create_valid` | `POST /api/ships` | 201, zwrócony obiekt |
-| `create_invalid` | `POST /api/ships` (brak pól) | 400, mapa błędów walidacji |
-| `create_blankName` | `POST /api/ships` (`name: "   "`) | 400 — `@NotBlank` odrzuca samą spację |
-| `create_zeroTonnage` | `POST /api/ships` (`tonnage: 0`) | 400 — `@Positive` odrzuca zero |
-| `create_negativeTonnage` | `POST /api/ships` (`tonnage: -1`) | 400 — `@Positive` odrzuca ujemne |
-| `update_valid` | `PUT /api/ships/1` | 200, zaktualizowany obiekt |
+| `create_valid` | `POST /api/ships` | 201, returned object |
+| `create_invalid` | `POST /api/ships` (missing fields) | 400, validation error map |
+| `create_blankName` | `POST /api/ships` (`name: "   "`) | 400 — `@NotBlank` rejects whitespace-only |
+| `create_zeroTonnage` | `POST /api/ships` (`tonnage: 0`) | 400 — `@Positive` rejects zero |
+| `create_negativeTonnage` | `POST /api/ships` (`tonnage: -1`) | 400 — `@Positive` rejects negatives |
+| `update_valid` | `PUT /api/ships/1` | 200, updated object |
 | `update_notFound` | `PUT /api/ships/99` | 404 |
 | `generateName_success` | `GET /api/ships/generate-name` | 200, `{"name":"..."}` |
-| `generateName_unauthenticated` | `GET /api/ships/generate-name` | 401 (brak sesji) |
+| `generateName_unauthenticated` | `GET /api/ships/generate-name` | 401 (no session) |
 | `generateName_apiError` | `GET /api/ships/generate-name` | 503 (ExternalApiException) |
 
-### AuthControllerTest — 4 przypadki
+### AuthControllerTest — 4 cases
 
-Używa `@SpringBootTest` (pełny kontekst) + `@MockitoBean UserRepository`. Logika auth delegowana do `AuthService`, który jest ładowany automatycznie.
+Uses `@SpringBootTest` (full context) + `@MockitoBean UserRepository`. Auth logic is delegated to `AuthService`, which is loaded automatically.
 
-| Test | Co sprawdza |
+| Test | What it verifies |
 |---|---|
-| `login_valid` | `AuthenticationManager` zwraca auth → 200 |
-| `login_invalid` | rzuca `BadCredentialsException` → 401 |
-| `login_blankFields` | `@Valid` odrzuca → 400 |
-| `logout` | 200, sesja unieważniona |
+| `login_valid` | `AuthenticationManager` returns auth → 200 |
+| `login_invalid` | throws `BadCredentialsException` → 401 |
+| `login_blankFields` | `@Valid` rejects → 400 |
+| `logout` | 200, session invalidated |
 
-### LocationReportControllerTest — 5 przypadków
+### LocationReportControllerTest — 5 cases
 
-| Test | Co sprawdza |
+| Test | What it verifies |
 |---|---|
-| `getByShip_found` | 200, lista raportów |
+| `getByShip_found` | 200, list of reports |
 | `getByShip_shipNotFound` | 404 |
-| `create_valid` | 201, nowy raport |
-| `create_invalid` | 400 (brak pól) |
+| `create_valid` | 201, new report |
+| `create_invalid` | 400 (missing fields) |
 | `create_shipNotFound` | 404 |
 
 ---
 
-## Warstwa 3 — Test repozytorium
+## Layer 3 — Repository Test
 
-`H2 in-memory` - automatyczne tworzenie schematu przez Hibernate
+`H2 in-memory` — schema created automatically by Hibernate
 
-`@DataJpaTest` ładuje tylko warstwę JPA. PostgreSQL zastępowany jest bazą H2 działającą w pamięci. Liquibase wyłączany. Schemat tworzony przez Hibernate z adnotacji JPA.
+`@DataJpaTest` loads only the JPA layer. PostgreSQL is replaced by an H2 in-memory database. Liquibase is disabled. Schema is created by Hibernate from JPA annotations.
 
-Testujemy wyłącznie niestandardowe zapytania (standardowe metody JPA nie wymagają testów).
+Only custom queries are tested (standard JPA methods do not require tests).
 
-### LocationReportRepositoryTest — 2 przypadki
+### LocationReportRepositoryTest — 2 cases
 
-| Test | Co sprawdza |
+| Test | What it verifies |
 |---|---|
-| `findByShipIdOrderByReportDateAsc_ordered` | raporty wracają chronologicznie |
-| `findByShipIdOrderByReportDateAsc_empty` | brak raportów → pusta lista |
+| `findByShipIdOrderByReportDateAsc_ordered` | reports returned in chronological order |
+| `findByShipIdOrderByReportDateAsc_empty` | no reports → empty list |
 
 ---
 
-## Wymagane zmiany infrastrukturalne
+## Required Infrastructure Changes
 
-| Zmiana | Cel |
+| Change | Purpose |
 |---|---|
-| Dodanie `com.h2database:h2` (scope: test) do `pom.xml` | H2 dla `@DataJpaTest` |
-| Nowy `src/test/resources/application.properties` | Wyłączenie Liquibase, konfiguracja H2 |
-| Nowa klasa `AppConfig.java` | Bean `RestClient` dla DI |
-| Modyfikacja `NameGeneratorService.java` | Przyjęcie `RestClient` z zewnątrz |
+| Add `com.h2database:h2` (scope: test) to `pom.xml` | H2 for `@DataJpaTest` |
+| New `src/test/resources/application.properties` | Disable Liquibase, configure H2 |
+| New class `AppConfig.java` | `RestClient` bean for DI |
+| Modify `NameGeneratorService.java` | Accept `RestClient` from outside |
 
 ---
 
-## Podsumowanie
+## Summary
 
-| Plik | Typ | Przypadki |
+| File | Type | Cases |
 |---|---|---|
 | `ShipServiceTest` | Unit / Mockito | 7 |
 | `LocationReportServiceTest` | Unit / Mockito | 4 |
@@ -138,4 +138,4 @@ Testujemy wyłącznie niestandardowe zapytania (standardowe metody JPA nie wymag
 | `LocationReportControllerTest` | Web slice / MockMvc | 5 |
 | `LocationReportRepositoryTest` | JPA slice / H2 | 2 |
 | `ShipTrackerBackendApplicationTests` | Integration / Spring context | 1 |
-| **Łącznie** | | **40** |
+| **Total** | | **40** |

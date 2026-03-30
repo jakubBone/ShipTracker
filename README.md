@@ -71,8 +71,6 @@ cd ship-tracker-backend
 ## 🤖 Development Approach
 
 > Built with [Claude Code](https://claude.ai/code): AI-assisted pair programming, spec-first workflow
-> 
-> Note: The planning docs in `spec/` are in Polish, which was the working language for this project.
 
 Backend is my stronger side. Frontend is an area I'm currently developing.
 

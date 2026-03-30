@@ -1,20 +1,20 @@
-# ShipTracker — Plan Swagger / OpenAPI
+# ShipTracker — Swagger / OpenAPI Plan
 
 ---
 
-## Wstęp
+## Introduction
 
-Używamy `springdoc-openapi` — integruje OpenAPI 3 ze Spring Boot 3 i dostarcza wbudowany Swagger UI. 
+We use `springdoc-openapi` — it integrates OpenAPI 3 with Spring Boot 3 and provides a built-in Swagger UI.
 
-Po implementacji dokumentacja dostępna pod:
-- `http://localhost:8080/swagger-ui.html` — interaktywny UI
-- `http://localhost:8080/v3/api-docs` — surowy JSON (OpenAPI spec)
+After implementation, the documentation is available at:
+- `http://localhost:8080/swagger-ui.html` — interactive UI
+- `http://localhost:8080/v3/api-docs` — raw JSON (OpenAPI spec)
 
 ---
 
-## ETAP 1: Zależność Maven
+## STAGE 1: Maven Dependency
 
-### Krok 1.1 — Dodaj do `pom.xml`
+### Step 1.1 — Add to `pom.xml`
 
 ```xml
 <dependency>
@@ -24,20 +24,20 @@ Po implementacji dokumentacja dostępna pod:
 </dependency>
 ```
 
-Wersja `2.x` wymagana dla Spring Boot 3.x — `1.x` działa tylko z Boot 2.x. Sama ta zależność wystarczy żeby Swagger UI było dostępne — springdoc skanuje kontrolery i generuje spec automatycznie przy starcie aplikacji.
+Version `2.x` is required for Spring Boot 3.x — `1.x` only works with Boot 2.x. This single dependency is enough for Swagger UI to be available — springdoc scans controllers and generates the spec automatically at application startup.
 
-### Definicja "done":
-- `./mvnw compile` kończy się bez błędów (zależność pobrana i widoczna)
+### Definition of Done:
+- `./mvnw compile` completes without errors (dependency downloaded and visible)
 
-> Swagger UI nie będzie jeszcze dostępne — Spring Security blokuje te ścieżki do czasu Etapu 3.
+> Swagger UI will not yet be accessible — Spring Security blocks these paths until Stage 3.
 
 ---
 
-## ETAP 2: Konfiguracja OpenAPI
+## STAGE 2: OpenAPI Configuration
 
-### Krok 2.1 — Stwórz `OpenApiConfig.java`
+### Step 2.1 — Create `OpenApiConfig.java`
 
-Nowy plik: `src/main/java/com/shiptracker/config/OpenApiConfig.java`
+New file: `src/main/java/com/shiptracker/config/OpenApiConfig.java`
 
 ```java
 @Configuration
@@ -62,26 +62,26 @@ public class OpenApiConfig {
 }
 ```
 
-Dwie rzeczy do wyjaśnienia:
+Two things to clarify:
 
-**Schemat `APIKEY in COOKIE`** — OpenAPI 3 nie ma dedykowanego typu dla sesji HTTP. Najbliższy odpowiednik to `apiKey` przesyłany w ciasteczku. Definiujemy go pod nazwą `cookieAuth` i podajemy nazwę ciasteczka — `JSESSIONID`. Swagger UI wyświetli kłódkę przy każdym endpoincie i pozwoli wpisać wartość sesji, żeby testować chronionych endpointów bez `curl -b`.
+**`APIKEY in COOKIE` scheme** — OpenAPI 3 has no dedicated type for HTTP sessions. The closest equivalent is an `apiKey` sent in a cookie. We define it under the name `cookieAuth` and provide the cookie name — `JSESSIONID`. Swagger UI will display a padlock on each endpoint and allow entering a session value to test protected endpoints without `curl -b`.
 
-**`addSecurityItem`** — aplikuje schemat `cookieAuth` globalnie na wszystkie endpointy. Bez tego kłódka byłaby widoczna, ale żaden endpoint nie byłby oznaczony jako wymagający autoryzacji. Endpointy publiczne (login, logout) nadpiszemy indywidualnie adnotacją `@SecurityRequirements({})` w Etapie 4.
+**`addSecurityItem`** — applies the `cookieAuth` scheme globally to all endpoints. Without this, the padlock would be visible but no endpoint would be marked as requiring authorisation. Public endpoints (login, logout) will be overridden individually with the `@SecurityRequirements({})` annotation in Stage 4.
 
-### Definicja "done":
-- `./mvnw compile` kończy się bez błędów (bean `OpenAPI` zarejestrowany)
+### Definition of Done:
+- `./mvnw compile` completes without errors (`OpenAPI` bean registered)
 
-> Weryfikacja w Swagger UI (tytuł, kłódka) możliwa dopiero po Etapie 3.
+> Verification in Swagger UI (title, padlock) is only possible after Stage 3.
 
 ---
 
-## ETAP 3: Zezwolenie w Spring Security
+## STAGE 3: Allow Access in Spring Security
 
-### Krok 3.1 — Zaktualizuj `SecurityConfig.java`
+### Step 3.1 — Update `SecurityConfig.java`
 
-springdoc rejestruje swoje zasoby pod ścieżkami `/swagger-ui/**` i `/v3/api-docs/**` — to domyślne, niezmienione ścieżki biblioteki. Aktualny `SecurityConfig` blokuje wszystko poza `/api/auth/login`, więc bez tej zmiany wejście na `/swagger-ui.html` zwróci 401.
+springdoc registers its resources under paths `/swagger-ui/**` and `/v3/api-docs/**` — these are the library's defaults, unchanged. The current `SecurityConfig` blocks everything except `/api/auth/login`, so without this change, accessing `/swagger-ui.html` will return 401.
 
-Rozszerz `requestMatchers` w metodzie `filterChain`:
+Extend the `requestMatchers` in the `filterChain` method:
 
 ```java
 .authorizeHttpRequests(auth -> auth
@@ -94,19 +94,19 @@ Rozszerz `requestMatchers` w metodzie `filterChain`:
     .anyRequest().authenticated())
 ```
 
-### Definicja "done":
-- `http://localhost:8080/swagger-ui.html` dostępny bez logowania
-- `http://localhost:8080/api/ships` nadal zwraca 401 bez sesji
+### Definition of Done:
+- `http://localhost:8080/swagger-ui.html` accessible without logging in
+- `http://localhost:8080/api/ships` still returns 401 without a session
 
 ---
 
-## ETAP 4: Adnotacje na kontrolerach
+## STAGE 4: Controller Annotations
 
-springdoc automatycznie wykrywa endpointy i generuje spec. 
+springdoc automatically detects endpoints and generates the spec.
 
-`@SecurityRequirements({})` na metodach `login` i `logout` usuwa kłódkę przy tych endpointach — są publiczne i nie wymagają sesji.
+`@SecurityRequirements({})` on the `login` and `logout` methods removes the padlock from those endpoints — they are public and do not require a session.
 
-### Krok 4.1 — `ShipController.java`
+### Step 4.1 — `ShipController.java`
 
 ```
 @Tag(name = "Ships")
@@ -137,7 +137,7 @@ generateName() → @Operation("Generate a random ship name")
                  @ApiResponse(503, "External API unavailable")
 ```
 
-### Krok 4.2 — `LocationReportController.java`
+### Step 4.2 — `LocationReportController.java`
 
 ```
 @Tag(name = "Location Reports")
@@ -154,7 +154,7 @@ create()    → @Operation("Add a location report for a ship")
                @ApiResponse(404, "Ship not found")
 ```
 
-### Krok 4.3 — `AuthController.java`
+### Step 4.3 — `AuthController.java`
 
 ```
 @Tag(name = "Authentication")
@@ -174,20 +174,20 @@ me()     → @Operation("Get currently logged-in username")
             @ApiResponse(401, "Not authenticated")
 ```
 
-### Definicja "done":
-- W Swagger UI widoczne są 3 grupy: „Ships", „Location Reports", „Authentication"
-- Każdy endpoint ma summary i udokumentowane kody odpowiedzi
-- Endpointy `login` i `logout` nie mają kłódki
+### Definition of Done:
+- Swagger UI shows 3 groups: "Ships", "Location Reports", "Authentication"
+- Each endpoint has a summary and documented response codes
+- The `login` and `logout` endpoints have no padlock
 
 ---
 
-## ETAP 5: Adnotacje @Schema na DTO
+## STAGE 5: `@Schema` Annotations on DTOs
 
-`@Schema` z przykładowymi wartościami wypełnia ciało requestu w Swagger UI przy „Try it out" — bez nich trzeba wpisywać dane ręcznie. Adnotację umieszczamy bezpośrednio na parametrach rekordu, przed adnotacjami walidacyjnymi.
+`@Schema` with example values fills in the request body in Swagger UI when using "Try it out" — without them, data must be entered manually. The annotation is placed directly on record parameters, before validation annotations.
 
-`ShipResponse` i `LocationReportResponse` pomijamy — response DTO nie są edytowane przez użytkownika, a nazwy pól są wystarczająco czytelne.
+`ShipResponse` and `LocationReportResponse` are skipped — response DTOs are not edited by the user, and the field names are self-explanatory.
 
-### Krok 5.1 — `ShipRequest.java`
+### Step 5.1 — `ShipRequest.java`
 
 ```java
 public record ShipRequest(
@@ -205,7 +205,7 @@ public record ShipRequest(
 ) {}
 ```
 
-### Krok 5.2 — `LocationReportRequest.java`
+### Step 5.2 — `LocationReportRequest.java`
 
 ```java
 public record LocationReportRequest(
@@ -220,7 +220,7 @@ public record LocationReportRequest(
 ) {}
 ```
 
-### Krok 5.3 — `LoginRequest.java`
+### Step 5.3 — `LoginRequest.java`
 
 ```java
 public record LoginRequest(
@@ -232,38 +232,38 @@ public record LoginRequest(
 ) {}
 ```
 
-### Definicja "done":
-- W sekcji „Schemas" w UI pola mają opisy i przykłady
-- „Try it out" na endpointach z request body wypełnia dane automatycznie
+### Definition of Done:
+- In the "Schemas" section of the UI, fields have descriptions and examples
+- "Try it out" on endpoints with a request body auto-fills data
 
 ---
 
-## Podsumowanie zmian
+## Summary of Changes
 
-| Plik | Zmiana |
+| File | Change |
 |------|--------|
-| `pom.xml` | +1 zależność: `springdoc-openapi-starter-webmvc-ui` |
-| `SecurityConfig.java` | +3 ścieżki w `permitAll` |
-| `OpenApiConfig.java` | Nowy plik — tytuł, wersja, schemat sesji cookie |
-| `ShipController.java` | `@Tag` + `@Operation` + `@ApiResponse` na 5 endpointach |
-| `LocationReportController.java` | `@Tag` + `@Operation` + `@ApiResponse` na 2 endpointach |
-| `AuthController.java` | `@Tag` + `@Operation` + `@ApiResponse` + `@SecurityRequirements` na 3 endpointach |
-| `ShipRequest.java` | `@Schema` na 4 polach |
-| `LocationReportRequest.java` | `@Schema` na 3 polach |
-| `LoginRequest.java` | `@Schema` na 2 polach |
+| `pom.xml` | +1 dependency: `springdoc-openapi-starter-webmvc-ui` |
+| `SecurityConfig.java` | +3 paths in `permitAll` |
+| `OpenApiConfig.java` | New file — title, version, cookie session scheme |
+| `ShipController.java` | `@Tag` + `@Operation` + `@ApiResponse` on 5 endpoints |
+| `LocationReportController.java` | `@Tag` + `@Operation` + `@ApiResponse` on 2 endpoints |
+| `AuthController.java` | `@Tag` + `@Operation` + `@ApiResponse` + `@SecurityRequirements` on 3 endpoints |
+| `ShipRequest.java` | `@Schema` on 4 fields |
+| `LocationReportRequest.java` | `@Schema` on 3 fields |
+| `LoginRequest.java` | `@Schema` on 2 fields |
 
-Łącznie: **9 plików**, brak zmian w logice biznesowej.
+Total: **9 files**, no changes to business logic.
 
 ---
 
-## Weryfikacja końcowa
+## Final Verification
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-1. Wejdź na `http://localhost:8080/swagger-ui.html`
-2. Widoczne są 3 sekcje: Ships, Location Reports, Authentication
-3. POST `/api/auth/login` → „Try it out" → Execute → 200 OK, cookie `JSESSIONID` w odpowiedzi
-4. GET `/api/ships` bez autoryzacji → Execute → 401 Unauthorized
-5. GET `/api/ships` z sesją → 200, lista statków
+1. Go to `http://localhost:8080/swagger-ui.html`
+2. Three sections are visible: Ships, Location Reports, Authentication
+3. POST `/api/auth/login` → "Try it out" → Execute → 200 OK, `JSESSIONID` cookie in the response
+4. GET `/api/ships` without authorisation → Execute → 401 Unauthorized
+5. GET `/api/ships` with a session → 200, list of ships

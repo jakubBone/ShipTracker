@@ -1,75 +1,75 @@
-# ShipTracker — Plan Implementacji (krok po kroku)
+# ShipTracker — Implementation Plan (Step by Step)
 
 ---
 
-## ETAP 0: Przygotowanie środowiska
+## STAGE 0: Environment Setup
 
-### Co robimy i dlaczego
-Zanim napiszemy linię kodu, musimy mieć działające narzędzia. To jak budowa domu — zanim wlejemy fundament, sprawdzamy czy mamy betoniarkę.
+### What and Why
+Before writing a single line of code, we need working tools. Like building a house — before pouring the foundation, check that the cement mixer is ready.
 
-### Kroki:
+### Steps:
 
-**0.1 Weryfikacja narzędzi**
+**0.1 Verify tools**
 ```bash
-java --version        # potrzebujemy Java 21+
-mvn --version         # Maven do budowania backendu
-node --version        # Node.js do Angulara
+java --version        # requires Java 21+
+mvn --version         # Maven for building the backend
+node --version        # Node.js for Angular
 npm --version
-ng version            # Angular CLI (jeśli nie ma: npm install -g @angular/cli)
-docker --version      # Docker do bazy danych
+ng version            # Angular CLI (if missing: npm install -g @angular/cli)
+docker --version      # Docker for the database
 git --version
 ```
 
-**0.2 Utwórz plik `.env` z kluczem API**
+**0.2 Create the `.env` file with the API key**
 
-W katalogu głównym projektu (obok `docker-compose.yml`):
+In the project root (next to `docker-compose.yml`):
 ```
-RANDOMMER_API_KEY=twoj_klucz_api
+RANDOMMER_API_KEY=your_api_key
 ```
-Plik `.env` musi być w `.gitignore` — klucz nie może trafić do repozytorium.
+The `.env` file must be in `.gitignore` — the key must not reach the repository.
 
-**0.3 Uruchom bazę danych (tylko postgres na etapie developmentu)**
+**0.3 Start the database (postgres only during development)**
 ```bash
 docker compose up postgres -d
 
-# Weryfikacja:
-docker ps   # powinien być kontener postgres:16 działający na porcie 5432
+# Verify:
+docker ps   # should show a postgres:16 container running on port 5432
 ```
-Na etapie developmentu uruchamiamy tylko postgresa. Backend i frontend odpalamy lokalnie (`./mvnw spring-boot:run`, `ng serve`) dla wygody (hot-reload). Pełny `docker compose up` (wszystkie 3 serwisy) uruchamiamy dopiero po ukończeniu frontendu w Etapie 5.
+During development, we only start postgres. The backend and frontend run locally (`./mvnw spring-boot:run`, `ng serve`) for convenience (hot-reload). Full `docker compose up` (all 3 services) is run only after completing the frontend in Stage 5.
 
-**0.4 Stwórz repozytorium GitHub**
-- Utwórz nowe publiczne repo na GitHub (np. `ship-tracker`)
+**0.4 Create a GitHub repository**
+- Create a new public repo on GitHub (e.g. `ship-tracker`)
 - `git init`, `git remote add origin <URL>`
-- Dodaj `.gitignore` dla Java + Node + plik `.env`
+- Add `.gitignore` for Java + Node + `.env` file
 
-### Definicja "done":
-- `docker ps` pokazuje działający kontener postgres
-- Plik `.env` istnieje w katalogu głównym i jest w `.gitignore`
-- Java 21 i Maven dostępne w terminalu
-- Angular CLI dostępne (`ng version`)
-- Puste repo na GitHubie gotowe
+### Definition of Done:
+- `docker ps` shows a running postgres container
+- `.env` file exists in the project root and is in `.gitignore`
+- Java 21 and Maven available in the terminal
+- Angular CLI available (`ng version`)
+- Empty GitHub repo ready
 
 ---
 
-## ETAP 1: Backend — Fundament (Spring Boot + Liquibase + Security)
+## STAGE 1: Backend — Foundation (Spring Boot + Liquibase + Security)
 
-### Co robimy i dlaczego
-Backend to serce aplikacji. Frontend bez backendu to tylko statyczna strona. Zaczynamy od backendu, bo:
-1. Definiuje kontrakt danych (co zwraca API)
-2. Angular będzie się do niego podłączał
+### What and Why
+The backend is the heart of the application. A frontend without a backend is just a static page. We start with the backend because:
+1. It defines the data contract (what the API returns)
+2. Angular will connect to it
 
-### Kroki:
+### Steps:
 
-**1.1 Generuj projekt przez Spring Initializr**
-- Wejdź na: https://start.spring.io
-- Ustaw:
+**1.1 Generate the project via Spring Initializr**
+- Go to: https://start.spring.io
+- Set:
   - Project: Maven
   - Language: Java
   - Spring Boot: 3.4.x
   - Group: `com.shiptracker`
   - Artifact: `ship-tracker-backend`
   - Java: 21
-- Dodaj dependencies:
+- Add dependencies:
   - Spring Web
   - Spring Data JPA
   - Spring Security
@@ -77,7 +77,7 @@ Backend to serce aplikacji. Frontend bez backendu to tylko statyczna strona. Zac
   - Liquibase Migration
   - Validation
 
-**1.2 Skonfiguruj application.properties**
+**1.2 Configure application.properties**
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/shiptracker_db
 spring.datasource.username=postgres
@@ -88,11 +88,11 @@ spring.liquibase.change-log=classpath:db/changelog/db.changelog-master.xml
 randommer.api.key=${RANDOMMER_API_KEY:demo-key}
 ```
 
-`ddl-auto=validate` — Liquibase zarządza schematem, Hibernate tylko go weryfikuje przy starcie.
+`ddl-auto=validate` — Liquibase manages the schema, Hibernate only validates it at startup.
 
-**1.3 Skonfiguruj Liquibase**
+**1.3 Configure Liquibase**
 
-Plik `db.changelog-master.xml` — master lista migracji:
+`db.changelog-master.xml` — master migration list:
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" ...>
@@ -101,24 +101,24 @@ Plik `db.changelog-master.xml` — master lista migracji:
 </databaseChangeLog>
 ```
 
-Plik `001-create-tables.xml` — tworzy tabele:
+`001-create-tables.xml` — creates tables:
 - `users` (id BIGSERIAL PK, username VARCHAR UNIQUE NOT NULL, password VARCHAR NOT NULL, role VARCHAR NOT NULL)
 - `ships` (id BIGSERIAL PK, name VARCHAR NOT NULL, launch_date DATE NOT NULL, ship_type VARCHAR NOT NULL, tonnage NUMERIC(12,2) NOT NULL)
 - `location_reports` (id BIGSERIAL PK, ship_id BIGINT FK→ships, report_date DATE NOT NULL, country VARCHAR NOT NULL, port VARCHAR NOT NULL)
 
-Liquibase zamiast schema.sql — śledzi historię migracji, można dodawać kolejne wersje schematu bez niszczenia danych. Standard w projektach produkcyjnych.
+Liquibase instead of schema.sql — tracks migration history, allows adding new schema versions without destroying data. Standard practice in production projects.
 
-Plik `002-seed-data.xml` — dane testowe:
-- 1 użytkownik `admin` (hasło zahashowane BCrypt)
-- 4 statki z różnymi typami (Cargo, Tanker, Container, Bulk Carrier)
-- 3–5 wpisów lokalizacji per statek
+`002-seed-data.xml` — test data:
+- 1 user `admin` (password hashed with BCrypt)
+- 4 ships of different types (Cargo, Tanker, Container, Bulk Carrier)
+- 3–5 location entries per ship
 
-**1.4 Stwórz encje (Entity)**
+**1.4 Create entities (Entity)**
 
 `User.java`:
 - `id` (Long, @GeneratedValue)
 - `username` (String, @Column(unique=true))
-- `password` (String — hashowane BCrypt)
+- `password` (String — BCrypt hashed)
 - `role` (String — "ROLE_USER")
 
 `Ship.java`:
@@ -136,11 +136,11 @@ Plik `002-seed-data.xml` — dane testowe:
 - `country` (String, `@Column(nullable = false)`)
 - `port` (String, `@Column(nullable = false)`)
 
-> **Uwaga:** Adnotacje Bean Validation (`@NotBlank`, `@NotNull`, `@Positive`) należą do warstwy DTO (`ShipRequest`, `LocationReportRequest`), nie do encji. Encje są chronione przez `nullable = false` na poziomie bazy danych. Walidacja wejścia odbywa się w kontrolerze przez `@Valid @RequestBody`.
+> **Note:** Bean Validation annotations (`@NotBlank`, `@NotNull`, `@Positive`) belong to the DTO layer (`ShipRequest`, `LocationReportRequest`), not to entities. Entities are protected by `nullable = false` at the database level. Input validation happens in the controller via `@Valid @RequestBody`.
 
-LocationReport jest immutable by design — brak pól updatedAt, brak endpointu PUT/PATCH.
+LocationReport is immutable by design — no updatedAt fields, no PUT/PATCH endpoint.
 
-**1.5 Stwórz repozytoria**
+**1.5 Create repositories**
 ```java
 ShipRepository extends JpaRepository<Ship, Long>
 
@@ -151,9 +151,9 @@ UserRepository extends JpaRepository<User, Long>
     // + Optional<User> findByUsername(String username)
 ```
 
-**1.6 DTO jako Java Records (Java 21)**
+**1.6 DTOs as Java Records (Java 21)**
 
-W Java 21 DTO piszemy jako `record` zamiast klas z getterami/setterami. Record jest immutable i kompaktowy — kompilator generuje konstruktor, gettery, equals, hashCode i toString automatycznie. Brak potrzeby Lomboka.
+In Java 21, DTOs are written as `record` instead of classes with getters/setters. A record is immutable and concise — the compiler automatically generates the constructor, getters, equals, hashCode, and toString. No need for Lombok.
 
 ```java
 public record LoginRequest(
@@ -191,30 +191,30 @@ public record LocationReportResponse(
 ) {}
 ```
 
-**1.7 Stwórz serwisy (Service)**
+**1.7 Create services (Service)**
 
 `AuthService`:
-- `login(String username, String password, HttpSession session)` — autentykacja przez `AuthenticationManager`, ustawienie `SecurityContextHolder`, zapis sesji
-- `logout(HttpSession session, HttpServletResponse response)` — unieważnienie sesji, czyszczenie kontekstu, usunięcie ciasteczka
+- `login(String username, String password, HttpSession session)` — authentication via `AuthenticationManager`, set `SecurityContextHolder`, save session
+- `logout(HttpSession session, HttpServletResponse response)` — invalidate session, clear context, remove cookie
 
-Wydzielony z `AuthController` — kontroler odpowiada tylko za HTTP, logika sesji należy do serwisu (SRP).
+Extracted from `AuthController` — the controller is only responsible for HTTP, session logic belongs to the service (SRP).
 
 `ShipService`:
 - `findAll()` → `List<ShipResponse>`
-- `findById(Long id)` → `ShipResponse` (rzuca ResourceNotFoundException jeśli brak)
+- `findById(Long id)` → `ShipResponse` (throws ResourceNotFoundException if missing)
 - `create(ShipRequest dto)` → `ShipResponse`
 - `update(Long id, ShipRequest dto)` → `ShipResponse`
 
 `LocationReportService`:
-- `findByShipId(Long shipId)` → `List<LocationReportResponse>` posortowane wg daty
+- `findByShipId(Long shipId)` → `List<LocationReportResponse>` sorted by date
 - `create(Long shipId, LocationReportRequest dto)` → `LocationReportResponse`
 
 `NameGeneratorService`:
-- `generateName()` → `String` (wywołuje randommer.io przez RestClient — nowe API Spring 6)
-- Klucz API wstrzykiwany z `application.properties` przez `@Value`
-- Obsługa wyjątku gdy API niedostępne → rzuca wyjątek z komunikatem
+- `generateName()` → `String` (calls randommer.io via RestClient — the new Spring 6 API)
+- API key injected from `application.properties` via `@Value`
+- Exception handling when the API is unavailable → throws an exception with a message
 
-**1.8 Stwórz kontrolery (Controller)**
+**1.8 Create controllers (Controller)**
 
 ```
 GET  /api/ships              → ShipController.getAll()             → 200 List<ShipResponse>
@@ -229,24 +229,24 @@ POST /api/auth/logout        → AuthController.logout(HttpSession)  → 200 Log
 GET  /api/auth/me            → AuthController.me()                 → 200 UserResponse
 ```
 
-**1.9 Skonfiguruj Spring Security**
+**1.9 Configure Spring Security**
 
 ```java
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
     // permitAll: POST /api/auth/login
-    // authenticated: wszystkie inne /api/**
+    // authenticated: all other /api/**
     // session-based (SessionCreationPolicy.IF_REQUIRED)
     // CORS: allowedOrigins localhost:4200, allowCredentials true
     // CSRF: disabled (REST API)
-    // 401 dla niezalogowanych (nie redirect na login page HTML)
+    // 401 for unauthenticated users (not redirect to HTML login page)
 }
 ```
 
-Session-based zamiast JWT — prostsze dla tej skali. JWT jest potrzebny przy mikroserwisach lub gdy frontend jest hostowany oddzielnie od backendu na innej domenie.
+Session-based instead of JWT — simpler at this scale. JWT is needed for microservices or when the frontend is hosted separately on a different domain from the backend.
 
-**1.10 Globalny handler błędów**
+**1.10 Global error handler**
 
 ```java
 @RestControllerAdvice
@@ -254,8 +254,8 @@ public class GlobalExceptionHandler {
 
     public record ErrorResponse(String message, int status, Instant timestamp) {}
 
-    // MethodArgumentNotValidException → 400 + Map<String, String> (pole → komunikat błędu)
-    //   Uwaga: ten handler zwraca Map, nie ErrorResponse — inna struktura niż pozostałe
+    // MethodArgumentNotValidException → 400 + Map<String, String> (field → error message)
+    //   Note: this handler returns Map, not ErrorResponse — different structure from the rest
     // ResourceNotFoundException       → 404 + ErrorResponse
     // AuthenticationException         → 401 + ErrorResponse ("Invalid credentials")
     // ExternalApiException            → 503 + ErrorResponse
@@ -263,112 +263,112 @@ public class GlobalExceptionHandler {
 }
 ```
 
-`ExternalApiException` ma dwa konstruktory:
-- `ExternalApiException(String message)` — ogólny błąd API
-- `ExternalApiException(String message, Throwable cause)` — używany w `NameGeneratorService` przy `RestClientException`, zachowuje oryginalny stack trace
+`ExternalApiException` has two constructors:
+- `ExternalApiException(String message)` — general API error
+- `ExternalApiException(String message, Throwable cause)` — used in `NameGeneratorService` on `RestClientException`, preserving the original stack trace
 
-### Testy backendu:
+### Backend Tests:
 
 ```bash
 ./mvnw spring-boot:run
 
-# Logowanie
+# Login
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin123"}' \
   -c cookies.txt
-# Oczekiwane: 200 OK, ciasteczko JSESSIONID w cookies.txt
+# Expected: 200 OK, JSESSIONID cookie in cookies.txt
 
-# Logowanie — złe hasło
+# Login — wrong password
 curl -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"wrong"}'
-# Oczekiwane: 401 Unauthorized
+# Expected: 401 Unauthorized
 
-# Brak sesji → 401
+# No session → 401
 curl http://localhost:8080/api/ships
-# Oczekiwane: 401 Unauthorized
+# Expected: 401 Unauthorized
 
-# Lista statków (wymaga sesji)
+# List ships (requires session)
 curl http://localhost:8080/api/ships -b cookies.txt
-# Oczekiwane: JSON array z 4 statkami z seed data
+# Expected: JSON array with 4 ships from seed data
 
-# Dodanie statku
+# Add a ship
 curl -X POST http://localhost:8080/api/ships \
   -H "Content-Type: application/json" -b cookies.txt \
   -d '{"name":"Black Pearl","launchDate":"2010-05-15","shipType":"Cargo","tonnage":50000}'
-# Oczekiwane: 201 Created, JSON z id
+# Expected: 201 Created, JSON with id
 
-# Walidacja — puste pola
+# Validation — empty fields
 curl -X POST http://localhost:8080/api/ships \
   -H "Content-Type: application/json" -b cookies.txt \
   -d '{"name":""}'
-# Oczekiwane: 400 Bad Request, JSON z mapą błędów pól
+# Expected: 400 Bad Request, JSON with field error map
 
-# Walidacja — tonaż ujemny
+# Validation — negative tonnage
 curl -X POST http://localhost:8080/api/ships \
   -H "Content-Type: application/json" -b cookies.txt \
   -d '{"name":"X","launchDate":"2010-01-01","shipType":"Cargo","tonnage":-1}'
-# Oczekiwane: 400 Bad Request
+# Expected: 400 Bad Request
 
-# Nieistniejący statek
+# Non-existent ship
 curl http://localhost:8080/api/ships/99999 -b cookies.txt
-# Oczekiwane: 404 Not Found
+# Expected: 404 Not Found
 
-# Dodanie wpisu lokalizacji
+# Add a location report
 curl -X POST http://localhost:8080/api/ships/1/reports \
   -H "Content-Type: application/json" -b cookies.txt \
   -d '{"reportDate":"2024-03-10","country":"Poland","port":"Gdańsk"}'
-# Oczekiwane: 201 Created
+# Expected: 201 Created
 
-# Dodanie wpisu do nieistniejącego statku
+# Add report to non-existent ship
 curl -X POST http://localhost:8080/api/ships/99999/reports \
   -H "Content-Type: application/json" -b cookies.txt \
   -d '{"reportDate":"2024-03-10","country":"Poland","port":"Gdańsk"}'
-# Oczekiwane: 404 Not Found
+# Expected: 404 Not Found
 
-# Generowanie nazwy
+# Generate name
 curl http://localhost:8080/api/ships/generate-name -b cookies.txt
-# Oczekiwane: 200 OK, {"name":"<losowa nazwa>"}
-# Gdy API niedostępne: 503 Service Unavailable
+# Expected: 200 OK, {"name":"<random name>"}
+# When API unavailable: 503 Service Unavailable
 ```
 
-### Definicja "done":
-- Liquibase tworzy tabele i wgrywa seed data przy starcie
-- Logowanie zwraca 200 + ciasteczko sesji
-- Błędne dane logowania → 401
-- GET /api/ships → lista 4 statków (z seed)
-- POST /api/ships → tworzenie z walidacją (400 przy błędnych polach)
-- GET /api/ships/{id} → 404 dla nieistniejącego id
-- GET /api/ships/{id}/reports → lista posortowana chronologicznie
-- POST /api/ships/{id}/reports → 404 gdy statek nie istnieje
-- 401 dla requestów bez sesji
-- GET /api/ships/generate-name → losowa nazwa lub 503 gdy API pada
+### Definition of Done:
+- Liquibase creates tables and loads seed data at startup
+- Login returns 200 + session cookie
+- Invalid login credentials → 401
+- GET /api/ships → list of 4 ships (from seed)
+- POST /api/ships → creation with validation (400 on invalid fields)
+- GET /api/ships/{id} → 404 for non-existent id
+- GET /api/ships/{id}/reports → list sorted chronologically
+- POST /api/ships/{id}/reports → 404 when ship does not exist
+- 401 for requests without a session
+- GET /api/ships/generate-name → random name or 503 when API is down
 
 ---
 
-## ETAP 2: Frontend — Projekt Angular + Logowanie
+## STAGE 2: Frontend — Angular Setup + Login
 
-### Co robimy i dlaczego
-Budujemy interfejs. Zaczynamy od logowania — to brama do całej aplikacji. Użytkownik niezalogowany nie powinien widzieć nic poza formularzem login.
+### What and Why
+We build the interface. We start with login — it is the gateway to the entire application. An unauthenticated user should see nothing but the login form.
 
-### Kroki:
+### Steps:
 
-**2.1 Wygeneruj projekt Angular**
+**2.1 Generate the Angular project**
 ```bash
 ng new ship-tracker-frontend --routing=true --style=scss
 cd ship-tracker-frontend
-ng serve   # powinno działać na localhost:4200
+ng serve   # should run at localhost:4200
 ```
 
-**2.2 Zainstaluj Angular Material**
+**2.2 Install Angular Material**
 ```bash
 ng add @angular/material
 ```
 
-Angular Material to oficjalna biblioteka UI dla Angulara. Daje gotowe komponenty (formularze, tabele, karty, toolbar) — spójny wygląd bez pisania CSS od zera.
+Angular Material is the official UI library for Angular. It provides ready-made components (forms, tables, cards, toolbar) — consistent appearance without writing CSS from scratch.
 
-**2.3 Skonfiguruj środowisko**
+**2.3 Configure the environment**
 
 `environments/environment.ts`:
 ```typescript
@@ -378,7 +378,7 @@ export const environment = {
 };
 ```
 
-**2.4 Skonfiguruj HttpClient z interceptorami**
+**2.4 Configure HttpClient with interceptors**
 
 `app.config.ts`:
 ```typescript
@@ -390,22 +390,22 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
-Dwa interceptory:
-- `credentialsInterceptor` — dodaje `{ withCredentials: true }` do każdego żądania; bez tego przeglądarka nie wyśle ciasteczka sesji i Spring Security odrzuci każdy request jako niezalogowany
-- `errorInterceptor` — globalnie przechwytuje błąd 401 i przekierowuje na `/login` (wygaśnięcie sesji)
+Two interceptors:
+- `credentialsInterceptor` — adds `{ withCredentials: true }` to every request; without this, the browser will not send the session cookie and Spring Security will reject every request as unauthenticated
+- `errorInterceptor` — globally catches 401 errors and redirects to `/login` (session expiry)
 
-**Konwencje bezpieczeństwa (obowiązują przez cały projekt):**
-- Nigdy nie używać `localStorage` / `sessionStorage` do przechowywania sesji — sesja żyje wyłącznie w HttpOnly cookie
-- Nigdy nie używać `[innerHTML]` ani `DomSanitizer.bypassSecurityTrust*` — Angular automatycznie escapuje wartości
-- Blokować przycisk submit podczas trwającego żądania HTTP (flaga `isLoading`)
+**Security conventions (apply throughout the project):**
+- Never use `localStorage` / `sessionStorage` to store sessions — the session lives exclusively in an HttpOnly cookie
+- Never use `[innerHTML]` or `DomSanitizer.bypassSecurityTrust*` — Angular automatically escapes values
+- Disable the submit button during an ongoing HTTP request (an `isLoading` flag)
 
-**2.5 Stwórz AuthService**
+**2.5 Create AuthService**
 ```typescript
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly http = inject(HttpClient);       // inject() zamiast konstruktora
+  private readonly http = inject(HttpClient);       // inject() instead of constructor
   private readonly router = inject(Router);
-  private readonly loggedIn = signal(false);        // Signal zamiast BehaviorSubject
+  private readonly loggedIn = signal(false);        // Signal instead of BehaviorSubject
 
   login(username: string, password: string): Observable<void>
   logout(): Observable<void>
@@ -413,9 +413,9 @@ export class AuthService {
 }
 ```
 
-`signal` to nowy mechanizm reaktywności w Angular 17+ — lżejszy i prostszy niż RxJS dla prostego stanu logowania. `inject()` zastępuje konstruktor z parametrami — czytelniejsze w serwisach i guardach.
+`signal` is the new reactivity mechanism in Angular 17+ — lighter and simpler than RxJS for simple login state. `inject()` replaces the constructor with parameters — more readable in services and guards.
 
-**2.6 Stwórz AuthGuard (functional guard)**
+**2.6 Create AuthGuard (functional guard)**
 ```typescript
 export const authGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
@@ -424,17 +424,17 @@ export const authGuard: CanActivateFn = () => {
 };
 ```
 
-Guard stoi przed każdą chronioną trasą. Jeśli użytkownik nie jest zalogowany — redirect na `/login`.
+The guard stands in front of every protected route. If the user is not logged in — redirect to `/login`.
 
-**2.7 Stwórz LoginComponent**
+**2.7 Create LoginComponent**
 - Reactive Form: username + password
-- Przycisk "Zaloguj"
-- Obsługa błędu 401 → komunikat „Nieprawidłowe dane logowania"
-- Po sukcesie: redirect na `/ships`
+- "Login" button
+- 401 error handling → message "Invalid credentials"
+- On success: redirect to `/ships`
 
-**2.8 Skonfiguruj routing (tylko trasy Etapu 2)**
+**2.8 Configure routing (Stage 2 routes only)**
 
-Routing budujemy przyrostowo — dodajemy trasy tylko dla komponentów które już istnieją. Trasy `/ships` zostaną dodane w Etapie 3.
+Routing is built incrementally — we only add routes for components that already exist. The `/ships` routes will be added in Stage 3.
 
 ```typescript
 export const routes: Routes = [
@@ -443,10 +443,10 @@ export const routes: Routes = [
 ];
 ```
 
-### Jak uruchomić do testów
+### How to Run for Testing
 
 ```bash
-# Terminal 1 — baza danych
+# Terminal 1 — database
 docker compose up postgres -d
 
 # Terminal 2 — backend
@@ -458,31 +458,31 @@ cd ship-tracker-frontend
 ng serve
 ```
 
-Otwórz: `http://localhost:4200`
+Open: `http://localhost:4200`
 
-### Test:
+### Tests:
 
-1. Otwórz `http://localhost:4200` → redirect na `/login`
-2. Wpisz złe hasło → komunikat „Nieprawidłowe dane logowania", brak redirectu
-3. Wpisz `admin` / `admin123` → redirect na `/ships` (pusta strona — komponent powstanie w Etapie 3, redirect jest poprawny)
-4. Przycisk „Zaloguj się" zablokowany podczas trwającego żądania
+1. Open `http://localhost:4200` → redirect to `/login`
+2. Enter wrong password → "Invalid credentials" message, no redirect
+3. Enter `admin` / `admin123` → redirect to `/ships` (blank page — component will be created in Stage 3, redirect is correct)
+4. "Login" button disabled during an ongoing request
 
-### Definicja "done":
-- `ng serve` działa bez błędów kompilacji
-- Strona logowania wyświetla się pod `localhost:4200/login`
-- Błędne dane → komunikat błędu widoczny pod formularzem
-- Poprawne dane → redirect na `/ships` (route jeszcze nie wyrenderuje widoku — to Etap 3)
+### Definition of Done:
+- `ng serve` runs without compilation errors
+- Login page appears at `localhost:4200/login`
+- Invalid credentials → error message visible below the form
+- Valid credentials → redirect to `/ships` (route not yet rendered — that is Stage 3)
 
 ---
 
-## ETAP 3: Frontend — Lista statków + Formularz
+## STAGE 3: Frontend — Ship List + Form
 
-### Co robimy i dlaczego
-Główny ekran aplikacji. Użytkownik zobaczy tu swoją flotę i będzie mógł nią zarządzać.
+### What and Why
+The main application screen. The user will see their fleet here and be able to manage it.
 
-### Kroki:
+### Steps:
 
-**3.1 Stwórz modele TypeScript**
+**3.1 Create TypeScript models**
 ```typescript
 // src/app/core/models/ship.model.ts
 export interface Ship {
@@ -502,7 +502,7 @@ export interface ShipRequest {
 }
 ```
 
-**3.2 Stwórz ShipService**
+**3.2 Create ShipService**
 ```typescript
 @Injectable({ providedIn: 'root' })
 export class ShipService {
@@ -514,17 +514,17 @@ export class ShipService {
 }
 ```
 
-**3.3 Stwórz ShipListComponent**
-- `mat-table` z kolumnami: Nazwa, Typ, Tonaż, Data wodowania, Akcje
-- Przyciski: „Szczegóły", „Edytuj"
-- Przycisk „Dodaj nowy statek" nad tabelą
-- Dane ładowane z `/api/ships` przy inicjalizacji (`ngOnInit`)
+**3.3 Create ShipListComponent**
+- `mat-table` with columns: Name, Type, Tonnage, Launch Date, Actions
+- Buttons: "Details", "Edit"
+- "Add new ship" button above the table
+- Data loaded from `/api/ships` on init (`ngOnInit`)
 
-**3.4 Stwórz ShipFormComponent (dodaj + edytuj)**
+**3.4 Create ShipFormComponent (add + edit)**
 
-Jeden komponent dla obu akcji — wykrywa tryb po obecności `:id` w URL. Jeśli id jest → tryb edycji (preload danych), bez id → tryb dodawania.
+One component for both actions — detects the mode based on the presence of `:id` in the URL. If id is present → edit mode (preload data), no id → add mode.
 
-Formularz (Strictly Typed Reactive Forms):
+Form (Strictly Typed Reactive Forms):
 ```typescript
 form = new FormGroup({
   name:       new FormControl<string>('', { nonNullable: true, validators: [Validators.required] }),
@@ -534,29 +534,29 @@ form = new FormGroup({
 });
 ```
 
-`nonNullable: true` oznacza że `reset()` przywraca wartość domyślną zamiast `null` — brak niespodzianek typowych. TypeScript wykryje błędy typów w czasie kompilacji.
-- Przycisk „Generuj nazwę statku"
+`nonNullable: true` means `reset()` restores the default value instead of `null` — no type surprises. TypeScript catches type errors at compile time.
+- "Generate ship name" button
 
-**3.5 Zaimplementuj przycisk „Generuj nazwę statku"**
+**3.5 Implement the "Generate ship name" button**
 
 ```typescript
 generateName(): void {
   this.shipService.generateName().subscribe({
     next: ({ name }) => this.shipForm.patchValue({ name }),
-    error: () => this.nameError = 'Nie udało się pobrać nazwy. Spróbuj ponownie.'
+    error: () => this.nameError = 'Failed to fetch name. Please try again.'
   });
 }
 ```
 
-Backend wywołuje randommer.io — klucz API jest bezpieczny po stronie serwera, nie widoczny w przeglądarce.
+The backend calls randommer.io — the API key is secure on the server side, not visible in the browser.
 
-**3.6 Walidacja formularza**
-- Wyświetl błędy pod polami (np. „Pole wymagane")
-- Zablokuj submit jeśli formularz niepoprawny
+**3.6 Form validation**
+- Display errors below fields (e.g. "Field required")
+- Disable submit if the form is invalid
 
-**3.7 Dodaj trasy do routingu**
+**3.7 Add routes to the router**
 
-Rozszerzamy `app.routes.ts` o trasy statków. Trasa `/ships/:id` (szczegóły) zostanie dodana w Etapie 4.
+Extend `app.routes.ts` with ship routes. The `/ships/:id` route (details) will be added in Stage 4.
 
 ```typescript
 export const routes: Routes = [
@@ -568,12 +568,12 @@ export const routes: Routes = [
 ];
 ```
 
-Uwaga: `ships/new` musi być przed `ships/:id` (Etap 4) — Angular dopasowuje trasy od góry, `new` byłoby inaczej potraktowane jako `:id`.
+Note: `ships/new` must come before `ships/:id` (Stage 4) — Angular matches routes top-down, `new` would otherwise be treated as `:id`.
 
-### Jak uruchomić do testów
+### How to Run for Testing
 
 ```bash
-# Terminal 1 — baza danych
+# Terminal 1 — database
 docker compose up postgres -d
 
 # Terminal 2 — backend
@@ -585,37 +585,37 @@ cd ship-tracker-frontend
 ng serve
 ```
 
-Otwórz: `http://localhost:4200` → zaloguj się → lista statków
+Open: `http://localhost:4200` → log in → ship list
 
-### Test:
+### Tests:
 
-1. Wejdź na `localhost:4200` → zaloguj się → tabela z 4 statkami z seed data
-2. Bezpośredni URL `/ships` bez zalogowania → redirect na `/login` (guard działa)
-3. Kliknij „Dodaj nowy statek" → formularz pusty
-4. Submit bez wypełnienia pól → błędy walidacji pod polami
-5. Kliknij „Generuj nazwę" → pole name uzupełnione
-6. Wypełnij pozostałe pola → submit → redirect na listę, nowy statek widoczny
-7. Kliknij „Edytuj" przy statku → formularz z danymi statku
-8. Zmień nazwę → submit → lista zaktualizowana
+1. Go to `localhost:4200` → log in → table with 4 ships from seed data
+2. Direct URL `/ships` without login → redirect to `/login` (guard works)
+3. Click "Add new ship" → empty form
+4. Submit without filling in fields → validation errors below fields
+5. Click "Generate name" → name field filled in
+6. Fill in remaining fields → submit → redirect to list, new ship visible
+7. Click "Edit" on a ship → form with ship data
+8. Change name → submit → list updated
 
-### Definicja "done":
-- Lista statków wyświetla dane z bazy (seed data — 4 statki)
-- Bezpośrednie wejście na `/ships` bez logowania → redirect na `/login`
-- Formularz dodawania działa — nowy statek pojawia się na liście
-- Formularz edycji działa — dane się zapisują
-- Przycisk „Generuj nazwę" wypełnia pole nazwy
-- Walidacja wyświetla błędy pod polami
+### Definition of Done:
+- Ship list displays data from the database (seed data — 4 ships)
+- Direct access to `/ships` without login → redirect to `/login`
+- Add form works — new ship appears in the list
+- Edit form works — data is saved
+- "Generate name" button fills in the name field
+- Validation displays errors below fields
 
 ---
 
-## ETAP 4: Frontend — Szczegóły statku + Dodawanie lokalizacji
+## STAGE 4: Frontend — Ship Details + Adding Location Reports
 
-### Co robimy i dlaczego
-To serce funkcjonalne zadania — raportowanie podróży. Widok szczegółów statku to miejsce gdzie widzimy całą historię i dodajemy nowe wpisy.
+### What and Why
+This is the functional core of the task — voyage reporting. The ship detail view is where we see the full history and add new entries.
 
-### Kroki:
+### Steps:
 
-**4.1 Stwórz modele TypeScript**
+**4.1 Create TypeScript models**
 ```typescript
 export interface LocationReport {
   id: number;
@@ -631,7 +631,7 @@ export interface LocationReportRequest {
 }
 ```
 
-**4.2 Stwórz LocationReportService**
+**4.2 Create LocationReportService**
 ```typescript
 @Injectable({ providedIn: 'root' })
 export class LocationReportService {
@@ -640,7 +640,7 @@ export class LocationReportService {
 }
 ```
 
-**4.3 Przygotuj słownik krajów**
+**4.3 Prepare the country dictionary**
 
 ```typescript
 // src/app/core/data/countries.data.ts
@@ -650,39 +650,39 @@ export const COUNTRIES: string[] = [
   'Greece', 'Latvia', 'Lithuania', 'Malta', 'Netherlands',
   'Norway', 'Poland', 'Portugal', 'Romania', 'Spain',
   'Sweden', 'Turkey', 'Ukraine', 'United Kingdom',
-  // + pełna lista
+  // + full list
 ];
 ```
 
-Statyczna lista zamiast zewnętrznego API — prostsze, bez zależności.
+Static list instead of an external API — simpler, no dependencies.
 
-**4.4 Stwórz ShipDetailComponent**
+**4.4 Create ShipDetailComponent**
 
-Zawiera:
-1. Karta z danymi statku (pobrana z `ShipService.getById(id)`)
-2. `LocationReportFormComponent` — formularz dodawania wpisu
-3. `TimelineComponent` — historia podróży
+Contains:
+1. Ship data card (fetched from `ShipService.getById(id)`)
+2. `LocationReportFormComponent` — form for adding an entry
+3. `TimelineComponent` — voyage history
 
-Po dodaniu nowego wpisu → odśwież timeline (re-fetch lub append do listy).
+After adding a new entry → refresh the timeline (re-fetch or append to the list).
 
-**4.5 Stwórz LocationReportFormComponent**
+**4.5 Create LocationReportFormComponent**
 
 Reactive Form:
-- `reportDate` — `<input type="date">` lub `<mat-datepicker>`
-- `country` — `<mat-select>` z `COUNTRIES`
+- `reportDate` — `<input type="date">` or `<mat-datepicker>`
+- `country` — `<mat-select>` with `COUNTRIES`
 - `port` — `<input matInput>`
-- Walidatory: required na wszystkich polach
-- Submit → `LocationReportService.create()` → emituje zdarzenie do rodzica
+- Validators: required on all fields
+- Submit → `LocationReportService.create()` → emits event to parent
 
-**4.6 Dodaj trasę szczegółów do routingu**
+**4.6 Add the detail route to the router**
 
-Rozszerzamy `app.routes.ts` o ostatnią brakującą trasę. Musi być po `ships/new` i `ships/:id/edit`:
+Extend `app.routes.ts` with the last missing route. Must come after `ships/new` and `ships/:id/edit`:
 
 ```typescript
 { path: 'ships/:id', component: ShipDetail, canActivate: [authGuard] },
 ```
 
-**4.7 Stwórz TimelineComponent**
+**4.7 Create TimelineComponent**
 
 Input: `@Input() reports: LocationReport[]`
 
@@ -701,12 +701,12 @@ Input: `@Input() reports: LocationReport[]`
 </div>
 ```
 
-`@for` to nowa składnia Angular 17+ (control flow) zamiast `*ngFor`. CSS timeline: linia pionowa po lewej, kropki przy każdym wpisie, karty z danymi.
+`@for` is the new Angular 17+ syntax (control flow) instead of `*ngFor`. CSS timeline: vertical line on the left, dots at each entry, data cards.
 
-### Jak uruchomić do testów
+### How to Run for Testing
 
 ```bash
-# Terminal 1 — baza danych
+# Terminal 1 — database
 docker compose up postgres -d
 
 # Terminal 2 — backend
@@ -718,40 +718,40 @@ cd ship-tracker-frontend
 ng serve
 ```
 
-Otwórz: `http://localhost:4200` → zaloguj się → lista statków → kliknij „Szczegóły"
+Open: `http://localhost:4200` → log in → ship list → click "Details"
 
-### Test:
+### Tests:
 
-1. Kliknij „Szczegóły" przy pierwszym statku z seed data → widok szczegółów z kartą danych statku
-2. Timeline wyświetla historię lokalizacji z seed data (posortowana chronologicznie)
-3. Wypełnij formularz lokalizacji: data + kraj (select) + port → submit
-4. Nowy wpis pojawia się na timeline bez przeładowania strony
-5. Odśwież stronę (F5) → wpis nadal widoczny (zapisany w bazie)
-6. Brak przycisków edycji przy wpisach timeline
+1. Click "Details" on the first ship from seed data → detail view with ship data card
+2. Timeline displays location history from seed data (sorted chronologically)
+3. Fill in the location form: date + country (select) + port → submit
+4. New entry appears on the timeline without page reload
+5. Refresh the page (F5) → entry still visible (saved in the database)
+6. No edit buttons on timeline entries
 
-### Definicja "done":
-- Widok szczegółów statku wyświetla dane statku
-- Timeline pokazuje historię lokalizacji (z seed data) posortowaną chronologicznie
-- Formularz dodawania wpisu lokalizacji działa
-- Nowy wpis pojawia się na timeline bez przeładowania strony
-- Pola formularza są walidowane (wymagane)
-- Brak możliwości edycji istniejących wpisów (tylko wyświetlanie)
+### Definition of Done:
+- Ship detail view displays ship data
+- Timeline shows location history (from seed data) sorted chronologically
+- Add location entry form works
+- New entry appears on the timeline without page reload
+- Form fields are validated (required)
+- No ability to edit existing entries (display only)
 
 ---
 
-## ETAP 5: Nawigacja, error handling, konteneryzacja, finalizacja
+## STAGE 5: Navigation, Error Handling, Containerisation, Finalisation
 
-### Co robimy i dlaczego
-Aplikacja działa — teraz ją dopracowujemy: nawigacja, obsługa błędów, wygląd. Na końcu konteneryzujemy frontend żeby całość uruchamiała się jedną komendą.
+### What and Why
+The application works — now we polish it: navigation, error handling, appearance. Finally, we containerise the frontend so the whole stack starts with a single command.
 
-### Kroki:
+### Steps:
 
-**5.1 Dodaj nawigację (toolbar)**
-- `mat-toolbar` z nazwą aplikacji
-- Przycisk „Wyloguj" (w prawym rogu) → `AuthService.logout()` → redirect `/login`
-- Link „Lista statków"
+**5.1 Add navigation (toolbar)**
+- `mat-toolbar` with the application name
+- "Logout" button (top right) → `AuthService.logout()` → redirect to `/login`
+- "Ship list" link
 
-**5.2 HTTP Interceptor dla błędów globalnych**
+**5.2 HTTP Interceptor for global errors**
 ```typescript
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
@@ -763,11 +763,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 };
 ```
 
-Jeśli sesja wygaśnie i backend zwróci 401 — użytkownik zostanie automatycznie przekierowany na `/login`.
+If the session expires and the backend returns 401 — the user is automatically redirected to `/login`.
 
-**5.3 Dockerfile dla frontendu**
+**5.3 Dockerfile for the frontend**
 
-Plik `ship-tracker-frontend/Dockerfile`:
+File `ship-tracker-frontend/Dockerfile`:
 ```dockerfile
 FROM node:20-alpine AS build
 WORKDIR /app
@@ -782,136 +782,154 @@ EXPOSE 80
 ```
 
 Multi-stage build:
-- Etap 1: Node.js buduje aplikację (`ng build`) → pliki statyczne HTML/JS/CSS w katalogu `dist/`
-- Etap 2: nginx serwuje te pliki pod portem 80 (mapowanym na 4200 w docker-compose)
+- Stage 1: Node.js builds the application (`ng build`) → static HTML/JS/CSS files in the `dist/` directory
+- Stage 2: nginx serves those files on port 80 (mapped to 4200 in docker-compose)
 
-Dlaczego nginx zamiast `ng serve` w kontenerze? `ng serve` to serwer deweloperski z hot-reloadem — nie nadaje się do "produkcji". nginx to lekki serwer HTTP zoptymalizowany do serwowania plików statycznych.
+Why nginx instead of `ng serve` in the container? `ng serve` is a development server with hot-reload — not suitable for "production". nginx is a lightweight HTTP server optimised for serving static files.
 
-**5.4 Finalna weryfikacja wymagań**
+**5.4 Final requirements verification**
 
-- [ ] Ekran logowania — dostęp tylko po zalogowaniu
-- [ ] Lista statków: Dodaj / Edytuj / Szczegóły
-- [ ] Formularz statku: 4 pola + generowanie nazwy (randommer.io)
-- [ ] Widok szczegółów statku
-- [ ] Formularz dodawania lokalizacji: data + kraj (słownik) + port
-- [ ] Wpisy lokalizacji są immutable (brak edycji)
-- [ ] Timeline — oś czasu posortowana chronologicznie
-- [ ] `docker compose up` uruchamia postgres + backend + frontend
-- [ ] Plik `.env` w `.gitignore`, klucz API nie w repozytorium
-- [ ] Liquibase zarządza schematem i seed data
-- [ ] Projekt na publicznym GitHubie z README
+- [ ] Login screen — access only after logging in
+- [ ] Ship list: Add / Edit / Details
+- [ ] Ship form: 4 fields + name generation (randommer.io)
+- [ ] Ship detail view
+- [ ] Add location form: date + country (dictionary) + port
+- [ ] Location entries are immutable (no editing)
+- [ ] Timeline — chronologically sorted
+- [ ] `docker compose up` starts postgres + backend + frontend
+- [ ] `.env` file in `.gitignore`, API key not in the repository
+- [ ] Liquibase manages schema and seed data
+- [ ] Project on a public GitHub with README
 
-**5.5 Zaktualizuj README**
+**5.5 Update README**
 ```markdown
 # Ship Tracker
 
-## Uruchomienie
+## Running
 
-### Wymagania
-- Docker i Docker Compose
-- Klucz API randommer.io
+### Requirements
+- Docker and Docker Compose
+- randommer.io API key
 
-### Konfiguracja
-Utwórz plik `.env` w katalogu głównym projektu:
-RANDOMMER_API_KEY=twoj_klucz_api
+### Configuration
+Create a `.env` file in the project root:
+RANDOMMER_API_KEY=your_api_key
 
-### Uruchomienie (jedna komenda)
+### Start (single command)
 docker compose up
 
-Aplikacja dostępna pod: http://localhost:4200
-Backend API pod: http://localhost:8080
+Application available at: http://localhost:4200
+Backend API at: http://localhost:8080
 
-### Logowanie
-Login: admin | Hasło: admin123
+### Login
+Username: admin | Password: admin123
 ```
 
-**5.6 Push na GitHub**
+**5.6 Push to GitHub**
 ```bash
 git add .
 git commit -m "feat(frontend): finalize Angular app with navbar and docker support"
 git push origin main
 ```
 
-### Jak uruchomić do testów (finalne — cały stack w Dockerze)
+### How to Run for Testing (final — full stack in Docker)
 
 ```bash
-# Upewnij się że plik .env istnieje z kluczem RANDOMMER_API_KEY
+# Ensure .env file exists with RANDOMMER_API_KEY
 docker compose up
 ```
 
-Otwórz: `http://localhost:4200`
+Open: `http://localhost:4200`
 
-### Test:
+### Tests:
 
-1. `docker compose up` uruchamia wszystkie 3 serwisy bez błędów
-2. Wejdź na `localhost:4200` → formularz logowania
-3. Zaloguj się `admin/admin123` → lista statków z seed data
-4. Dodaj statek (z wygenerowaną nazwą) → pojawia się na liście
-5. Edytuj statek — zmień tonaż → dane zaktualizowane
-6. Przejdź do szczegółów statku → karta + timeline z seed data
-7. Dodaj wpis lokalizacji: data + kraj + port → pojawia się na timeline
-8. Odśwież stronę → wszystkie dane zachowane
-9. Kliknij „Wyloguj" → redirect na `/login`, próba wejścia na `/ships` → redirect na `/login`
+1. `docker compose up` starts all 3 services without errors
+2. Go to `localhost:4200` → login form
+3. Log in with `admin/admin123` → ship list with seed data
+4. Add a ship (with generated name) → appears in the list
+5. Edit a ship — change tonnage → data updated
+6. Go to ship details → card + timeline with seed data
+7. Add a location entry: date + country + port → appears on the timeline
+8. Refresh the page → all data preserved
+9. Click "Logout" → redirect to `/login`, attempt to access `/ships` → redirect to `/login`
 
-### Definicja "done":
-- Wszystkie checkboxy z sekcji 5.4 zaznaczone
-- `docker compose up` uruchamia całość — postgres, backend, frontend
-- Aplikacja działa end-to-end: logowanie → statki → lokalizacje → timeline
-- Kod na publicznym GitHubie z działającym README
-
----
-
-## Kolejność realizacji (podsumowanie)
-
-| Etap | Co | Efekt |
-|------|----|-------|
-| 0 | Środowisko + Docker + GitHub | Fundament |
-| 1 | Spring Boot + Liquibase + Security + API | Działający backend |
-| 2 | Angular setup + logowanie | Brama do aplikacji |
-| 3 | Lista statków + formularz | Zarządzanie flotą |
-| 4 | Szczegóły + lokalizacje + timeline | Główna funkcja biznesowa |
-| 5 | Nawigacja + error handling + finalizacja | Gotowe |
+### Definition of Done:
+- All checkboxes from section 5.4 checked
+- `docker compose up` starts everything — postgres, backend, frontend
+- Application works end-to-end: login → ships → locations → timeline
+- Code on a public GitHub with a working README
 
 ---
 
-## Priorytety
+## Implementation Order (Summary)
 
-### 🔴 KRYTYCZNE (bez tego zadanie jest niekompletne):
-- Logowanie (Spring Security)
-- CRUD statków (lista + dodaj + edytuj)
-- Dodawanie wpisów lokalizacji
-- Timeline (oś czasu)
+| Stage | What | Result |
+|-------|------|--------|
+| 0 | Environment + Docker + GitHub | Foundation |
+| 1 | Spring Boot + Liquibase + Security + API | Working backend |
+| 2 | Angular setup + login | Gateway to the application |
+| 3 | Ship list + form | Fleet management |
+| 4 | Details + locations + timeline | Core business feature |
+| 5 | Navigation + error handling + finalisation | Done |
+
+---
+
+## Priorities
+
+### 🔴 CRITICAL (without this the task is incomplete):
+- Login (Spring Security)
+- Ship CRUD (list + add + edit)
+- Adding location entries
+- Timeline
 - Docker + PostgreSQL + Liquibase + seed data
 
-### 🟡 WAŻNE (wymagane w treści zadania):
-- Przycisk „Generuj nazwę" (randommer.io przez backend proxy)
-- Słownik krajów w formularzu lokalizacji
-- Brak możliwości edycji lokalizacji
+### 🟡 IMPORTANT (required in the task description):
+- "Generate name" button (randommer.io via backend proxy)
+- Country dictionary in the location form
+- No ability to edit locations
 
 ### 🟢 NICE TO HAVE:
-- Loading spinnery podczas ładowania danych
-- Komunikaty błędów dla niedostępności backendu
+- Loading spinners while fetching data
+- Error messages for backend unavailability
 
 ---
 
-## Testy integracyjne — scenariusz end-to-end
+## Integration Tests — End-to-End Scenario
 
 ```bash
-# Terminal 1
+# Full stack startup
 docker compose up -d
-cd ship-tracker-backend && ./mvnw spring-boot:run
 
-# Terminal 2
-cd ship-tracker-frontend && ng serve
+# Wait for services to be ready, then:
 
-# Przeglądarka: http://localhost:4200
+# 1. Login
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}' \
+  -c cookies.txt
+
+# 2. List ships (seed data)
+curl http://localhost:8080/api/ships -b cookies.txt
+
+# 3. Add a ship
+curl -X POST http://localhost:8080/api/ships \
+  -H "Content-Type: application/json" -b cookies.txt \
+  -d '{"name":"Test Ship","launchDate":"2020-01-01","shipType":"Cargo","tonnage":10000}'
+
+# 4. Add a location report
+curl -X POST http://localhost:8080/api/ships/1/reports \
+  -H "Content-Type: application/json" -b cookies.txt \
+  -d '{"reportDate":"2024-06-01","country":"Germany","port":"Hamburg"}'
+
+# 5. Get location reports
+curl http://localhost:8080/api/ships/1/reports -b cookies.txt
+
+# 6. Generate name
+curl http://localhost:8080/api/ships/generate-name -b cookies.txt
+
+# 7. Logout
+curl -X POST http://localhost:8080/api/auth/logout -b cookies.txt
+
+# 8. Attempt to access after logout → 401
+curl http://localhost:8080/api/ships -b cookies.txt
 ```
-
-1. Wejdź na `/ships` bez logowania → redirect na `/login`
-2. Zaloguj się `admin` / `admin123` → lista statków z seed data
-3. Dodaj nowy statek (z wygenerowaną nazwą) → pojawia się na liście
-4. Edytuj statek — zmień tonaż → dane zaktualizowane
-5. Przejdź do szczegółów statku → karta + timeline z seed data
-6. Dodaj wpis lokalizacji: data + kraj + port → pojawia się na timeline
-7. Odśwież stronę → wszystkie dane zachowane
-8. Wyloguj → redirect na `/login`, próba wejścia na `/ships` → redirect

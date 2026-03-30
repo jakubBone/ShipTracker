@@ -1,158 +1,158 @@
-# ShipTracker – Aplikacja do zarządzania statkami i raportowania podróży
+# ShipTracker – Application for Managing Ships and Voyage Reporting
 
 ---
 
 # 1. Problem
 
-Firmy z branży transportu morskiego potrzebują narzędzia do:
-- Zarządzania flotą statków (dodawanie, edycja danych jednostek)
-- Śledzenia historii pozycji / podróży każdego statku
-- Przejrzystego podglądu chronologicznego (timeline) tras
+Companies in the maritime transport industry need a tool to:
+- Manage their fleet of ships (adding, editing vessel data)
+- Track the position/voyage history of each ship
+- View a clear chronological timeline of routes
 
 ---
 
-# 2. Użytkownik
+# 2. User
 
-Operator floty / dyspozytor w firmie zajmującej się transportem morskim:
-- Dodaje statki do systemu i zarządza ich danymi
-- Rejestruje aktualne lub historyczne położenie statku
-- Przegląda historię podróży danej jednostki
-
----
-
-# 3. Zakres funkcjonalny
-
-## Moduł 1: Uwierzytelnianie
-- Ekran logowania (username + hasło)
-- Dostęp do systemu wyłącznie po zalogowaniu
-- Jedno konto testowe dostarczane przez Liquibase seed data
-
-## Moduł 2: Zarządzanie statkami
-- Lista wszystkich statków z akcjami: Dodaj / Edytuj / Przejdź do szczegółów
-- Formularz statku:
-  - Nazwa (text, wymagana)
-  - Data wodowania (date, wymagana)
-  - Typ statku (text, wymagany)
-  - Tonaż (number, wymagany, > 0)
-  - Przycisk „Generuj nazwę" → wywołuje endpoint backendu → randommer.io API
-
-## Moduł 3: Raportowanie podróży
-- Dodawanie wpisu lokalizacji z widoku szczegółów statku
-- Formularz wpisu:
-  - Data (date, wymagana)
-  - Kraj (select ze słownika — statyczna lista)
-  - Port (text, wymagany)
-- Wpisy są immutable — brak edycji po zapisaniu
-
-## Moduł 4: Timeline
-- Widok szczegółów statku zawiera oś czasu (timeline)
-- Wpisy posortowane chronologicznie
-- Styl wizualny: linia czasu z punktami i kartami danych
+Fleet operator / dispatcher in a maritime transport company:
+- Adds ships to the system and manages their data
+- Logs the current or historical position of a ship
+- Reviews the voyage history of a given vessel
 
 ---
 
-# 4. Wymagania techniczne
+# 3. Functional Scope
 
-| Komponent | Technologia |
-|-----------|-------------|
+## Module 1: Authentication
+- Login screen (username + password)
+- System access only after logging in
+- One test account provided via Liquibase seed data
+
+## Module 2: Ship Management
+- List of all ships with actions: Add / Edit / Go to details
+- Ship form:
+  - Name (text, required)
+  - Launch date (date, required)
+  - Ship type (text, required)
+  - Tonnage (number, required, > 0)
+  - "Generate Name" button → calls backend endpoint → randommer.io API
+
+## Module 3: Voyage Reporting
+- Adding a location entry from the ship detail view
+- Entry form:
+  - Date (date, required)
+  - Country (select from dictionary — static list)
+  - Port (text, required)
+- Entries are immutable — no editing after saving
+
+## Module 4: Timeline
+- Ship detail view contains a timeline
+- Entries sorted chronologically
+- Visual style: timeline with dots and data cards
+
+---
+
+# 4. Technical Requirements
+
+| Component | Technology |
+|-----------|------------|
 | Backend | Spring Boot 3.4.x, Java 21 |
-| Baza danych | PostgreSQL 16 w Dockerze |
-| Migracje i seed | Liquibase |
-| Frontend | Angular (najnowsza stabilna) |
-| Konteneryzacja | Docker Compose — postgres + backend + frontend |
-| Repo | Publiczne repozytorium GitHub |
+| Database | PostgreSQL 16 in Docker |
+| Migrations & seed | Liquibase |
+| Frontend | Angular (latest stable) |
+| Containerisation | Docker Compose — postgres + backend + frontend |
+| Repository | Public GitHub repository |
 
-### Java 21 — zastosowane podejście
+### Java 21 — Approach Used
 
-- DTO jako **Java Records** (immutable, kompaktowe) — zastępują klasy z getterami/setterami/konstruktorami; brak Lomboka
-- **`Optional` + `.orElseThrow()`** — idiomatyczna obsługa braku zasobu (404) zamiast null-checków
-- **`stream().toList()`** (Java 16+) — niemutowalna lista jako wynik mapowania encji na DTO
-- **`RestClient`** (Spring 6 / Boot 3.2+) — nowoczesne API HTTP zamiast przestarzałego `RestTemplate`
-- **Pattern matching, switch expressions, text blocks** — nie zastosowane; kod jest zbyt prosty, żeby ich użycie było naturalne a nie sztuczne
+- DTOs as **Java Records** (immutable, concise) — replace classes with getters/setters/constructors; no Lombok
+- **`Optional` + `.orElseThrow()`** — idiomatic handling of missing resources (404) instead of null checks
+- **`stream().toList()`** (Java 16+) — immutable list as the result of mapping entities to DTOs
+- **`RestClient`** (Spring 6 / Boot 3.2+) — modern HTTP API instead of the deprecated `RestTemplate`
+- **Pattern matching, switch expressions, text blocks** — not applied; the code is too simple for their use to feel natural rather than forced
 
-### Angular 17+ — zastosowane podejście
+### Angular 17+ — Approach Used
 
-- **Standalone Components** — brak `NgModule`; każdy komponent sam deklaruje swoje zależności (analogia do braku Lomboka — mniej magii, więcej jawności)
-- **`inject()` function** — wstrzykiwanie zależności bez konstruktora; czytelniejsze w funkcyjnych guardach i interceptorach
-- **`@for`, `@if`, `@switch`** — nowa składnia control flow (Angular 17+) zamiast dyrektyw `*ngFor`, `*ngIf`
-- **Signals** — reaktywny stan (`signal()`, `computed()`) zamiast `BehaviorSubject` dla prostego stanu (np. isLoggedIn)
-- **Strictly Typed Reactive Forms** — `FormGroup<{ name: FormControl<string> }>` zamiast niegenerycznego `FormGroup`; błędy typów wykrywane w czasie kompilacji
-- **`readonly` na interfejsach** — modele danych niemutowalne przez konwencję (analogia do Java Records)
-- **Functional Guards** — `CanActivateFn` zamiast klas implementujących interfejs
+- **Standalone Components** — no `NgModule`; each component declares its own dependencies (analogous to no Lombok — less magic, more explicitness)
+- **`inject()` function** — dependency injection without a constructor; more readable in functional guards and interceptors
+- **`@for`, `@if`, `@switch`** — new control flow syntax (Angular 17+) instead of `*ngFor`, `*ngIf` directives
+- **Signals** — reactive state (`signal()`, `computed()`) instead of `BehaviorSubject` for simple state (e.g. isLoggedIn)
+- **Strictly Typed Reactive Forms** — `FormGroup<{ name: FormControl<string> }>` instead of the non-generic `FormGroup`; type errors caught at compile time
+- **`readonly` on interfaces** — data models immutable by convention (analogous to Java Records)
+- **Functional Guards** — `CanActivateFn` instead of classes implementing an interface
 
-### Bezpieczeństwo frontendu (OWASP)
+### Frontend Security (OWASP)
 
-- **Brak `localStorage`** do przechowywania sesji — sesja trzymana wyłącznie w HttpOnly cookie zarządzanym przez Spring Security
-- **Brak `[innerHTML]` i `bypassSecurityTrust*`** — Angular automatycznie escapuje interpolowane wartości; nie omijamy tego mechanizmu
-- **Interceptor 401** — wygaśnięcie sesji automatycznie przekierowuje na `/login`
-- **Disable submit podczas żądania** — zapobiega wielokrotnemu wysłaniu formularza
-
----
-
-# 5. Zewnętrzne API
-
-**Randommer.io — generowanie nazwy statku**
-- Klucz API przechowywany w pliku `.env` w katalogu głównym projektu (nie w kodzie)
-- Plik `.env` jest w `.gitignore` — klucz nie trafia do repozytorium
-- Docker Compose czyta klucz z `.env` i przekazuje go do kontenera backendu jako zmienna środowiskowa
-- Spring Boot odczytuje go przez `${RANDOMMER_API_KEY}` w `application.properties`
-- Backend eksponuje endpoint `/api/ships/generate-name` → wywołuje randommer.io
-- Frontend wywołuje tylko backend (klucz API nie jest widoczny po stronie klienta)
-- Obsługa błędu: gdy API nie odpowie → 503 z komunikatem
-
-**Słownik krajów**
-- Statyczna lista w Angular service (`countries.data.ts`)
-- Brak zależności od zewnętrznego API
+- **No `localStorage`** for session storage — session held exclusively in an HttpOnly cookie managed by Spring Security
+- **No `[innerHTML]` or `bypassSecurityTrust*`** — Angular automatically escapes interpolated values; we do not bypass this mechanism
+- **401 Interceptor** — session expiry automatically redirects to `/login`
+- **Disable submit during request** — prevents multiple form submissions
 
 ---
 
-# 6. Reguły biznesowe i edge cases
+# 5. External API
 
-## Reguły biznesowe
-- Wpisy lokalizacji są **immutable** — brak endpointów PUT/PATCH dla `location_reports`; po zapisaniu nie można ich edytować
-- Statek może mieć wiele wpisów lokalizacji (relacja `@OneToMany`); wpisy wyświetlane są chronologicznie
-- Walidacja wymagana po stronie backendu (Bean Validation) oraz frontendu (Reactive Forms)
+**Randommer.io — ship name generation**
+- API key stored in the `.env` file in the project root (not in code)
+- `.env` file is in `.gitignore` — the key does not reach the repository
+- Docker Compose reads the key from `.env` and passes it to the backend container as an environment variable
+- Spring Boot reads it via `${RANDOMMER_API_KEY}` in `application.properties`
+- Backend exposes the endpoint `/api/ships/generate-name` → calls randommer.io
+- Frontend calls only the backend (API key is not visible on the client side)
+- Error handling: when the API does not respond → 503 with a message
 
-## Edge cases — obsługa błędów
+**Country dictionary**
+- Static list in Angular service (`countries.data.ts`)
+- No dependency on an external API
 
-| Scenariusz | Oczekiwane zachowanie |
+---
+
+# 6. Business Rules and Edge Cases
+
+## Business Rules
+- Location entries are **immutable** — no PUT/PATCH endpoints for `location_reports`; they cannot be edited after saving
+- A ship can have many location entries (a `@OneToMany` relationship); entries are displayed chronologically
+- Validation required on the backend (Bean Validation) and frontend (Reactive Forms)
+
+## Edge Cases — Error Handling
+
+| Scenario | Expected Behaviour |
 |---|---|
-| Żądanie do `/api/**` bez aktywnej sesji | `401 Unauthorized` |
-| Logowanie z błędnymi danymi | `401 Unauthorized` |
-| Tworzenie/edycja statku z pustymi lub niepoprawnymi polami | `400 Bad Request` + mapa błędów pól |
-| Tonaż równy zero lub ujemny | `400 Bad Request` |
-| Żądanie szczegółów nieistniejącego statku (`GET /api/ships/{id}`) | `404 Not Found` |
-| Edycja nieistniejącego statku (`PUT /api/ships/{id}`) | `404 Not Found` |
-| Dodanie raportu do nieistniejącego statku | `404 Not Found` |
-| Niedostępność zewnętrznego API randommer.io | `503 Service Unavailable` + komunikat; formularz pozostaje aktywny |
+| Request to `/api/**` without an active session | `401 Unauthorized` |
+| Login with incorrect credentials | `401 Unauthorized` |
+| Creating/editing a ship with empty or invalid fields | `400 Bad Request` + field error map |
+| Tonnage equal to zero or negative | `400 Bad Request` |
+| Requesting details of a non-existent ship (`GET /api/ships/{id}`) | `404 Not Found` |
+| Editing a non-existent ship (`PUT /api/ships/{id}`) | `404 Not Found` |
+| Adding a report to a non-existent ship | `404 Not Found` |
+| External API randommer.io unavailable | `503 Service Unavailable` + message; form remains active |
 
 ---
 
-# 7. Dane startowe (Liquibase seed)
+# 7. Seed Data (Liquibase)
 
-| Typ | Zawartość |
-|-----|-----------|
-| Użytkownicy | 1 konto: `admin` / `admin123` (BCrypt hash) |
-| Statki | 4–5 statków różnych typów (Cargo, Tanker, Container, Bulk Carrier) |
-| Wpisy lokalizacji | 3–5 wpisów per statek (różne kraje, daty — do weryfikacji timeline) |
+| Type | Content |
+|------|---------|
+| Users | 1 account: `admin` / `admin123` (BCrypt hash) |
+| Ships | 4–5 ships of different types (Cargo, Tanker, Container, Bulk Carrier) |
+| Location entries | 3–5 entries per ship (various countries and dates — for timeline verification) |
 
 ---
 
-# 8. Struktura projektu
+# 8. Project Structure
 
 ## Backend (`ship-tracker-backend/`)
 ```
 src/main/java/com/shiptracker/
 ├── config/
 │   ├── SecurityConfig.java          # CORS, session, CSRF, AuthenticationManager, UserDetailsService
-│   ├── AppConfig.java               # Bean RestClient (HTTP client dla NameGeneratorService)
-│   └── OpenApiConfig.java           # Swagger/OpenAPI — tytuł, wersja, schemat sesji cookie
+│   ├── AppConfig.java               # Bean RestClient (HTTP client for NameGeneratorService)
+│   └── OpenApiConfig.java           # Swagger/OpenAPI — title, version, cookie session scheme
 ├── controller/
 │   ├── AuthController.java
 │   ├── ShipController.java
 │   └── LocationReportController.java
 ├── service/
-│   ├── AuthService.java             # Logika logowania i wylogowania (SRP)
+│   ├── AuthService.java             # Login and logout logic (SRP)
 │   ├── ShipService.java
 │   ├── LocationReportService.java
 │   └── NameGeneratorService.java
@@ -212,11 +212,11 @@ src/app/
 
 ## Docker
 
-Wszystkie trzy serwisy uruchamiane jedną komendą: `docker compose up`
+All three services started with a single command: `docker compose up`
 
-Klucz API randommer.io przechowywany w pliku `.env` (poza repozytorium):
+Randommer.io API key stored in the `.env` file (outside the repository):
 ```
-RANDOMMER_API_KEY=twoj_klucz_api
+RANDOMMER_API_KEY=your_api_key
 ```
 
 ### `docker-compose.yml`
@@ -263,34 +263,34 @@ volumes:
 ```
 
 ### `ship-tracker-backend/Dockerfile`
-Multi-stage build: JDK do kompilacji → JRE do uruchomienia (mniejszy obraz końcowy).
+Multi-stage build: JDK for compilation → JRE for runtime (smaller final image).
 
 ### `ship-tracker-frontend/Dockerfile`
-Multi-stage build: Node.js do `ng build` → nginx do serwowania plików statycznych.
+Multi-stage build: Node.js for `ng build` → nginx for serving static files.
 
 ---
 
 # 9. REST API
 
-| Metoda | URL | Auth | Opis |
-|--------|-----|------|------|
-| POST | /api/auth/login | - | Logowanie |
-| POST | /api/auth/logout | TAK | Wylogowanie |
-| GET | /api/ships | TAK | Lista statków |
-| POST | /api/ships | TAK | Dodaj statek |
-| GET | /api/ships/{id} | TAK | Szczegóły statku |
-| PUT | /api/ships/{id} | TAK | Edytuj statek |
-| GET | /api/ships/generate-name | TAK | Losowa nazwa (proxy randommer.io) |
-| GET | /api/ships/{id}/reports | TAK | Historia lokalizacji |
-| POST | /api/ships/{id}/reports | TAK | Dodaj wpis lokalizacji |
+| Method | URL | Auth | Description |
+|--------|-----|------|-------------|
+| POST | /api/auth/login | - | Login |
+| POST | /api/auth/logout | YES | Logout |
+| GET | /api/ships | YES | List ships |
+| POST | /api/ships | YES | Add ship |
+| GET | /api/ships/{id} | YES | Ship details |
+| PUT | /api/ships/{id} | YES | Edit ship |
+| GET | /api/ships/generate-name | YES | Random name (proxy to randommer.io) |
+| GET | /api/ships/{id}/reports | YES | Location history |
+| POST | /api/ships/{id}/reports | YES | Add location entry |
 
 ---
 
-# 10. Bezpieczeństwo
+# 10. Security
 
 - Spring Security — session-based authentication
-- Hasło hashowane BCrypt
-- Wszystkie endpointy `/api/**` (poza `/api/auth/login`) wymagają sesji
-- CORS zezwala na `http://localhost:4200`
-- CSRF wyłączone (REST API, nie formularz HTML)
-- Frontend wysyła żądania z `withCredentials: true`
+- Password hashed with BCrypt
+- All `/api/**` endpoints (except `/api/auth/login`) require a session
+- CORS allows `http://localhost:4200`
+- CSRF disabled (REST API, not an HTML form)
+- Frontend sends requests with `withCredentials: true`
